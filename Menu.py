@@ -80,12 +80,17 @@ def display(sdf):
     sdf.show()
     menu(sdf)
 
+# Displays the column headers and there data types
+def display_schema(sdf):
+    sdf.printSchema()
+    menu(sdf)
+
 # Main menu displays options to manipulate the current data frame
 def menu(sdf):
     header = "\n      Main Menu       "
     line = "---------------------"
     options = "\n1) Simple SELECT statement\n2) Create your own SQL statement\n3) SQL between\n"
-    options += "4) Display Table\n0) exit\n"
+    options += "4) Display Table\n5) Print Schema\n0) exit\n"
     menu = header + "\n" + line + options +line
     print(menu)
     
@@ -110,10 +115,13 @@ def work(ui, sdf):
         between(first, second, column, sdf, spark)
     elif ui == "4":
         display(sdf)
+    elif ui == "5":
+        display_schema(sdf)
     elif ui == "0":
         print("Goodbye")
         quit()
     else:
+        print("Not an option, PLease try again.")
         menu(sdf)
 
 # Call setup for start passes user selected options to work
