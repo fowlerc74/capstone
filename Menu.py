@@ -69,7 +69,7 @@ def second_option(ui, sdf, spark):
 
 # Set up a SQL between option -- Does not work
 def between(first, second, column, sdf, spark):
-    sdf.createGlobalTempView("temp")
+    sdf.createOrReplaceTempView("temp")
     sql_input = "SELECT * FROM temp WHERE " + column + " BETWEEN " + first + " AND " + second
     print(sql_input)
     spark.sql(sql_input).show()
@@ -85,12 +85,38 @@ def display_schema(sdf):
     sdf.printSchema()
     menu(sdf)
 
+# Shows the min and max for both precipitation and snowfall
+def min_max(sdf):
+    options = "1) Max on Daily Precipitation\n2) Min on Daily Precipitation\n"
+    options += "3) Max on Daily Snowfall\n4) Min on Daily Snowfall\n"
+    print(options)
+    pick = input("Choose an option: ")
+    sdf.createOrReplaceTempView("temp")
+    if pick == "1":
+        sql_input = "SELECT MAX(DailyPrecipitation) FROM temp"
+        spark.sql(sql_input).show()
+        menu(sdf)
+    elif pick == "2":
+        sql_input = "SELECT MIN(DailyPrecipitation) FROM temp"
+        spark.sql(sql_input).show()
+        menu(sdf)
+    elif pick == "3":
+        sql_input = "SELECT MAX(DailySnowfall) FROM temp"
+        spark.sql(sql_input).show()
+        menu(sdf)
+    elif pick == "4":
+        sql_input = "SELECT MIN(DailySnowfall) FROM temp"
+        spark.sql(sql_input).show()
+        menu(sdf)
+    else:
+        print("Wrong input, try again")
+
 # Main menu displays options to manipulate the current data frame
 def menu(sdf):
     header = "\n      Main Menu       "
     line = "---------------------"
     options = "\n1) Simple SELECT statement\n2) Create your own SQL statement\n3) SQL between\n"
-    options += "4) Display Table\n5) Print Schema\n0) exit\n"
+    options += "4) Display Table\n5) Print Schema\n6) Min and Max\n0) exit\n"
     menu = header + "\n" + line + options +line
     print(menu)
     
@@ -117,6 +143,8 @@ def work(ui, sdf):
         display(sdf)
     elif ui == "5":
         display_schema(sdf)
+    elif ui == "6":
+        min_max(sdf)
     elif ui == "0":
         print("Goodbye")
         quit()
