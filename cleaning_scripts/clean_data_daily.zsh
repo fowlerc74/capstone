@@ -1,13 +1,12 @@
 #!/bin/zsh
 
 if [[ $# != 2 ]]; then
-    echo "Usage: remove_hourly_lines.zsh (filename with extention) (destination directory)"
+    echo "Usage: clean_data_daily.zsh (filename with extention) (destination directory)"
     exit 1
 fi
 
 # Check if the file is readable 
-if [[ ! -r $1 ]]
-then
+if [[ ! -r $1 ]]; then
     echo ERROR: $1 is not readable
     exit 2
 fi
@@ -19,8 +18,7 @@ new_filename="${filename%.*}_daily.csv"
 new_filepath="${destination}/${new_filename}"
 
 # Check if a file exists at the destination
-if [[ -e $new_filepath ]]
-then
+if [[ -e $new_filepath ]]; then
     echo ERROR: there is a file at the destination
     exit 3
 fi
