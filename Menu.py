@@ -2,6 +2,8 @@ import glob
 import os
 from pyspark.sql import SparkSession
 import pyspark.pandas as ps
+from pyspark.sql.functions import col
+from ML_Part import *
 
 # Initialize a SparkSession -- entry point for PySpark
 spark = SparkSession.builder.getOrCreate()
@@ -85,6 +87,16 @@ def display_schema(sdf):
     sdf.printSchema()
     menu(sdf)
 
+# Check if the values in dataframe is null -- don't really need this anymore
+def check_null(sdf):
+    print("Dont need this anymore.")
+    menu(sdf)
+
+# Calls machine menu in ML_Part
+def machine(sdf):
+    machine_menu(sdf)
+    menu(sdf)
+
 # Shows the min and max for both precipitation and snowfall
 def min_max(sdf):
     options = "1) Max on Daily Precipitation\n2) Min on Daily Precipitation\n"
@@ -116,7 +128,8 @@ def menu(sdf):
     header = "\n      Main Menu       "
     line = "---------------------"
     options = "\n1) Simple SELECT statement\n2) Create your own SQL statement\n3) SQL between\n"
-    options += "4) Display Table\n5) Print Schema\n6) Min and Max\n0) exit\n"
+    options += "4) Display Table\n5) Print Schema\n6) Min and Max\n7) Check for Null Values\n"
+    options += "8) Machine Learning\n0) exit\n"
     menu = header + "\n" + line + options +line
     print(menu)
     
@@ -145,6 +158,10 @@ def work(ui, sdf):
         display_schema(sdf)
     elif ui == "6":
         min_max(sdf)
+    elif ui == "7":
+        check_null(sdf)
+    elif ui == "8":
+        machine(sdf)
     elif ui == "0":
         print("Goodbye")
         quit()
