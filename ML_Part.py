@@ -4,12 +4,11 @@ from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
 import matplotlib.pyplot as plt
 
+
 ####################### Linear Regression #########################
-# Learn more about what goes into linear regression model
-def linear(sdf):
-    
+def linear(sdf, ui):
     # Display column name and data types
-    sdf.printSchema()
+    # sdf.printSchema()
     sdf = sdf.na.drop()
     # Creates vectors from dataset 
     assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
@@ -25,8 +24,7 @@ def linear(sdf):
                                         'DailyMinimumDryBulbTemperature',
                                         'DailyPeakWindDirection',
                                         'DailyPeakWindSpeed',
-                                        'DailySustainedWindSpeed',
-                                        'DailyWeather'], outputCol= 'Features')
+                                        'DailySustainedWindSpeed'], outputCol= 'Features')
     output = assembler.transform(sdf)
 
     # final data consists of features and label which is daily precipitation
@@ -34,39 +32,69 @@ def linear(sdf):
     # Splitting the data into train and test
     train_data, test_data = final_data.randomSplit([0.7, 0.3])
     # Display the train data based on the final_split split
-    train_data.show()
+    # train_data.show()
 
     # Creating an object of class LinearRegression
     # Object takes Features and label as input arguments
     rain_lr = LinearRegression(featuresCol='Features', labelCol='DailyPrecipitation')
     # Pass train_data to train model
     trained_rain_model = rain_lr.fit(train_data)
-    # Evaluating model trained for Rsquared error
+    # Evaluating model trained for R-squared error
     rain_results = trained_rain_model.evaluate(train_data)
-    print('\nRsquared Error: ', rain_results.r2)
-    # R2 value shows accuracy of model
-    # Model accuracy is very good and can be used for predictive analysis
 
     # Testing Model on unlabeled data
     # Create unlabeled data from test_data
     # Testing model on unlabeled data
     unlabeled_data = test_data.select('Features')
-    # unlabeled_data.show(5)
 
     # Display the results from test data
     predictions = trained_rain_model.transform(unlabeled_data)
-    predictions.show()
 
-    # TODO put values into array to display on graph
-    hold_daily = test_data.select('DailyPrecipitation').toPandas()
+    if ui == "1":
+        sdf.show()
+        machine_menu(sdf)
+    elif ui == "2":
+        predictions.show()
+        machine_menu(sdf)
+    elif ui == "3":
+        train_data.show()
+        predictions.show()
+        machine_menu(sdf)
+    elif ui == "4":
+        linear_plot(test_data, predictions)
+        machine_menu(sdf)
+    elif ui == "5":
+        # R2 value shows accuracy of model
+        print('\nR-squared Error: ', rain_results.r2)
+        machine_menu(sdf)
+    elif ui == "6":
+        sdf.show()
+        train_data.show()
+        predictions.show()
+        print('\nR-squared Error: ', rain_results.r2)
+        linear_plot(test_data, predictions)
+        machine_menu(sdf)
+    elif ui == "0":
+        machine_menu(sdf)
+    else:
+        print("Try again.")
+        machine_menu(sdf)
+
+# Menu to display options for Linear Regression 
+def linear_menu(sdf):
+    display = "\n1) Display Full Dataset\n2) Display Prediction table\n3) Display Prediction table + Subset of Dataset for Test\n"
+    display += "4) Display Scatter Plot\n5) Display R-Squared Error value\n6) Display All\n0) Exit\n"
+    print(display)
+    ui = input("Pick a option: ")
+    linear(sdf, ui)
+
+# Displays the scatter plot of the Linear Regression model
+def linear_plot(lr_model, pred):
+    hold_daily = lr_model.select('DailyPrecipitation').toPandas()
     daily_rain = list(hold_daily['DailyPrecipitation'])
-    hold_prediction = predictions.select('prediction').toPandas()
+    hold_prediction = pred.select('prediction').toPandas()
     daily_prediction = list(hold_prediction['prediction'])
-    # for i in daily_prediction:
-    #     print("Predictions: " , i)
-    # for j in daily_rain:
-    #     print("Actual: ", j)
-    
+
     i = 0
     date_arr = []
     while (len(daily_rain) != i):
@@ -79,7 +107,6 @@ def linear(sdf):
 
 
 #################### K-Means ######################
-# Learn more on what goes into the k-means algorithm
 def kmeans(sdf):
     # Display column name and data types
     sdf.printSchema()
@@ -135,7 +162,7 @@ def machine_menu(sdf):
 # Takes the user input
 def machine_work(ui,sdf):
     if ui == "1":
-        linear(sdf)
+        linear_menu(sdf)
     elif ui == "2":
         kmeans(sdf)
     elif ui == "0":
