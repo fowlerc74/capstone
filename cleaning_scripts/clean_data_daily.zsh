@@ -14,8 +14,8 @@ fi
 old_filepath=$1
 destination=$2
 filename=`basename $old_filepath`
-new_filename="${filename%.*}_daily.csv"
-new_filepath="${destination}/${new_filename}"
+# new_filename="${filename%.*}_daily.csv"
+new_filepath="${destination}/${filename}"
 
 # Check if a file exists at the destination
 if [[ -e $new_filepath ]]; then
