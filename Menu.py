@@ -13,8 +13,9 @@ def setup():
     print("\nHello!\n")
     # Current file path to the csv files
     # Should change if on another machine
-    file_path = "C:/Users/zacla/OneDrive/Desktop/Capstone/Spark/csv_files"
-    os.chdir("C:/Users/zacla/OneDrive/Desktop/Capstone/Spark/csv_files")
+    # file_path = "C:/Users/zacla/OneDrive/Desktop/Capstone/Spark/csv_files"
+    file_path = "/Users/cade/School/2023_Spring/Capstone/capstone/Data/processed"
+    os.chdir(file_path)
     # Get only csv files
     my_files = glob.glob('*.csv')
     count = 1
