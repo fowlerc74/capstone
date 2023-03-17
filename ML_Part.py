@@ -1,17 +1,10 @@
 from pyspark.ml.feature import StringIndexer, VectorAssembler, StandardScaler
 from pyspark.ml.regression import LinearRegression
-from pyspark.ml.clustering import KMeans, LDA
+from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
-from pyspark.mllib.classification import NaiveBayes
-from pyspark.mllib.linalg import Vectors
-from pyspark.mllib.regression import LabeledPoint
-from pyspark.sql.functions import col
 import matplotlib.pyplot as plt
-from pyspark.mllib.tree import DecisionTree, DecisionTreeModel
-from pyspark.mllib.util import MLUtils
 from pyspark.ml.feature import PCA
 from pyspark.ml.clustering import GaussianMixture
-from numpy import array
 
 
 
