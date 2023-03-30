@@ -1,17 +1,15 @@
-from pyspark.ml.feature import StringIndexer, VectorAssembler, StandardScaler
+from pyspark.ml.feature import VectorAssembler,PCA
 from pyspark.ml.regression import LinearRegression
-from pyspark.ml.clustering import KMeans
+from pyspark.ml.clustering import KMeans, GaussianMixture
 from pyspark.ml.evaluation import ClusteringEvaluator
+from pyspark.sql.functions import col
 import matplotlib.pyplot as plt
-from pyspark.ml.feature import PCA
-from pyspark.ml.clustering import GaussianMixture
-
 
 
 ####################### Linear Regression #########################
+# Learn more about what goes into linear regression model
 def linear(sdf, ui):
-    # Display column name and data types
-    # sdf.printSchema()
+    # Drops NULL values
     sdf = sdf.na.drop()
     # Creates vectors from dataset 
     assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
@@ -21,7 +19,6 @@ def linear(sdf, ui):
                                         'DailyAverageWetBulbTemperature',
                                         'DailyAverageWindSpeed',
                                         'DailyCoolingDegreeDays',
-                                        'DailyDepartureFromNormalAverageTemperature',
                                         'DailyHeatingDegreeDays',
                                         'DailyMaximumDryBulbTemperature',
                                         'DailyMinimumDryBulbTemperature',
@@ -44,24 +41,23 @@ def linear(sdf, ui):
     trained_rain_model = rain_lr.fit(train_data)
     # Evaluating model trained for R-squared error
     rain_results = trained_rain_model.evaluate(train_data)
-
     # Testing Model on unlabeled data
     # Create unlabeled data from test_data
     # Testing model on unlabeled data
     unlabeled_data = test_data.select('Features')
 
-    # Display the results from test data
+    # Predictions on the results from test data
     predictions = trained_rain_model.transform(unlabeled_data)
-
+    # options that the user selected
     if ui == "1":
         sdf.show()
         machine_menu(sdf)
     elif ui == "2":
-        predictions.show()
+        predictions.show(truncate=False)
         machine_menu(sdf)
     elif ui == "3":
-        train_data.show()
-        predictions.show()
+        train_data.show(truncate=False)
+        predictions.show(truncate=False)
         machine_menu(sdf)
     elif ui == "4":
         linear_plot(test_data, predictions)
@@ -72,8 +68,8 @@ def linear(sdf, ui):
         machine_menu(sdf)
     elif ui == "6":
         sdf.show()
-        train_data.show()
-        predictions.show()
+        train_data.show(truncate=False)
+        predictions.show(truncate=False)
         print('\nR-squared Error: ', rain_results.r2)
         linear_plot(test_data, predictions)
         machine_menu(sdf)
@@ -110,9 +106,9 @@ def linear_plot(lr_model, pred):
 
 
 #################### K-Means ######################
+# Learn more on what goes into the k-means algorithm
 def kmeans(sdf):
-    # Display column name and data types
-    sdf.printSchema()
+    # Drops NULL values
     sdf = sdf.na.drop()
     # Creates vectors from dataset 
     assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
@@ -121,41 +117,41 @@ def kmeans(sdf):
                                             'DailyAverageStationPressure',
                                             'DailyAverageWetBulbTemperature',
                                             'DailyAverageWindSpeed',
+                                            'DailyPrecipitation',
                                             'DailyCoolingDegreeDays',
-                                            'DailyDepartureFromNormalAverageTemperature',
                                             'DailyHeatingDegreeDays',
                                             'DailyMaximumDryBulbTemperature',
                                             'DailyMinimumDryBulbTemperature',
                                             'DailyPeakWindDirection',
                                             'DailyPeakWindSpeed',
-                                            'DailySustainedWindSpeed',
-                                            'DailyWeather'], outputCol= 'Features')
-    output = assembler.transform(sdf)
-
-    scale = StandardScaler(inputCol='Features', outputCol='standardized')
-        
-    data_scale = scale.fit(output)
-    data_scale_output = data_scale.transform(output)
-
-    silhouette_score = []
-    evaluator = ClusteringEvaluator(predictionCol='prediction', featuresCol='standardized',
-                                        metricName='silhouette',distanceMeasure='squaredEuclidean')
-    for i in range(2,10):
-        KMeans_algo = KMeans(featuresCol='standardized', k = i)
-        KMeans_fit = KMeans_algo.fit(data_scale_output)
-        KOutput = KMeans_fit.transform(data_scale_output)
-        score = evaluator.evaluate(KOutput)
-        silhouette_score.append(score)
-        # print("Silhouette Score: ", score)
-    fig, ax = plt.subplots(1,1, figsize = (8,6))
-    ax.plot(range(2,10), silhouette_score)
-    ax.set_xlabel('k')
-    ax.set_ylabel('weather')
-    fig.savefig('kmeans.png')
+                                            'DailySustainedWindSpeed'], outputCol= 'features')
+    new_df = assembler.transform(sdf)
+    # Trains a k-means model
+    kmeans = KMeans(k = 2)
+    model = kmeans.fit(new_df.select('features'))
+    # Makes the prediction
+    output = model.transform(new_df)
+    # Evaluate clustering by computing Silhouette score
+    evaluator = ClusteringEvaluator()
+    # Silhouette score measures how similar a data point is within-cluster
+    # Compared to other clusters
+    silhouette = evaluator.evaluate(output)
+    print("\nSilhouette with squared euclidean distance = " + str(silhouette))
+    # Displays cluster centers
+    centers = model.clusterCenters()
+    print("Cluster Centers: ")
+    for center in centers:
+        print(center)
+    # Display which features are in which cluster
+    output.select(col('features'), col('prediction')).show()
+    # Return to ML menu
+    machine_menu(sdf)
 
 ####### Gaussian Mixture #######
 # Clustering Algorithm
 def gaussian(sdf):
+    # Drops NULL values
+    sdf = sdf.na.drop() # checking if we can use the same csv without dropping NULL values
     num_k = 4
     assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
                                         'DailyAverageRelativeHumidity',
@@ -197,6 +193,8 @@ def gaussian(sdf):
 ####### Principal Component Analysis #######
 # PCA: Reduces dimensionality of large data sets
 def pca(sdf):
+    # Drops NULL values
+    sdf = sdf.na.drop() # checking if we can use the same csv without dropping NULL values
     # Change this so that each one is its own vector maybe ?
     assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
                                         'DailyAverageRelativeHumidity',
@@ -231,7 +229,8 @@ def pca(sdf):
 
 # Machine learning display options for which algorithm to use.
 def machine_menu(sdf):
-    display = "\n1) Linear Regression\n2) K-Means\n3) Gaussian Mixture\n4) Principal Component Analysis (PCA)\n0) Exit"
+    display = "\n1) Linear Regression\n2) K-Means\n"
+    display += "3) Gaussian Mixture\n4) Principal Component Analysis (PCA)\n0) Exit"
     print(display)
     # Pick option
     user_input = input("Pick a option: ")
