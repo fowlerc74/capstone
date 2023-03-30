@@ -88,11 +88,6 @@ def display_schema(sdf):
     sdf.printSchema()
     menu(sdf)
 
-# Check if the values in dataframe is null -- don't really need this anymore
-def check_null(sdf):
-    print("Dont need this anymore.")
-    menu(sdf)
-
 # Calls machine menu in ML_Part
 def machine(sdf):
     machine_menu(sdf)
@@ -129,8 +124,8 @@ def menu(sdf):
     header = "\n      Main Menu       "
     line = "---------------------"
     options = "\n1) Simple SELECT statement\n2) Create your own SQL statement\n3) SQL between\n"
-    options += "4) Display Table\n5) Print Schema\n6) Min and Max\n7) Check for Null Values\n"
-    options += "8) Machine Learning\n0) exit\n"
+    options += "4) Display Table\n5) Print Schema\n6) Min and Max\n"
+    options += "7) Machine Learning\n0) exit\n"
     menu = header + "\n" + line + options +line
     print(menu)
     
@@ -160,8 +155,6 @@ def work(ui, sdf):
     elif ui == "6":
         min_max(sdf)
     elif ui == "7":
-        check_null(sdf)
-    elif ui == "8":
         machine(sdf)
     elif ui == "0":
         print("Goodbye")
