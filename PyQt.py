@@ -1,86 +1,83 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QLineEdit
+from PyQt6.QtWidgets import (
+    QComboBox, QWidget, QApplication, QMainWindow, QVBoxLayout, QPushButton, QHBoxLayout, QLabel)
 from PyQt6.QtCore import Qt
 import sys
+import os
 
-# How to change current displayed text in QLabel Widget
-# class Window(QWidget):
-#     def __init__(self):
-#         super().__init__()
-#         # Window dimensions
-#         self.resize(300, 250)
-#         # Name of the window
-#         self.setWindowTitle("PyQt Widget Test")
-
-#         # VBox layout
-#         layout = QVBoxLayout()
-#         self.setLayout(layout)
-
-#         # Widget will start out saying Old Text
-#         self.label = QLabel("Old Text")
-#         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-#         self.label.adjustSize()
-#         layout.addWidget(self.label)
-
-#         # Adds button then goes to update if clicked
-#         button = QPushButton("Update Text")
-#         button.clicked.connect(self.update)
-#         layout.addWidget(button)
-
-#         # Adds another button to print text
-#         button = QPushButton("Print Text")
-#         button.clicked.connect(self.get)
-#         layout.addWidget(button)
-
-#     # Changes the text of the Widget
-#     def update(self):
-#         self.label.setText("New and Updated Text")
-
-#     # Prints current Widget text   
-#     def get(self):
-#         print(self.label.text())
-
-# Creating and Retrieving QLineEdit values
-class Window(QWidget):
+# Window that will show the graph(s) options to pick the ML algorithms
+# and also implement the hovering, filtering, and coordination features.
+class graphWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.resize(300, 250)
-        self.setWindowTitle(" QLineEdit Example")
-
-        layout = QVBoxLayout()
+        self.setWindowTitle("Graphing Window")
+        layout = QHBoxLayout()
+        self.label = QLabel("Options")
+        layout.addWidget(self.label)
         self.setLayout(layout)
 
-        self.input = QLineEdit()
-        self.input.setFixedWidth(150)
-        layout.addWidget(self.input, alignment= Qt.AlignmentFlag.AlignCenter)
+# Main window, this will display the csv files to choose from and take the
+# user choice and open the graph window. 
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        # Window Title 
+        self.setWindowTitle("PyQt Test")
 
-        button = QPushButton("Get Text")
-        button.clicked.connect(self.get)
-        layout.addWidget(button)
+        # File path to the csv files
+        file_path = "C:/Users/zacla/OneDrive/Desktop/Capstone/Spark/csv_files"
+        # Place all in directory into array
+        dir_list = os.listdir(file_path)
+        
+        # Make combo box that selects csv file
+        # TODO make option for choosing all
+        self.combobox = QComboBox()
+        self.combobox.addItems(dir_list)
+        self.combobox.activated.connect(self.next_step)
 
-        button = QPushButton("Clear Text")
-        button.clicked.connect(self.input.clear)
-        layout.addWidget(button)
+        # No other window is open if None
+        self.w = None
 
-    def get(self):
-        text = self.input.text()
-        print(text)
+        # Enter and Cancel buttons
+        self.enter = QPushButton("Enter", self)
+        # If option is picked in combo box, open new window
+        self.enter.clicked.connect(self.open_window)
+        self.cancel = QPushButton("Cancel", self)
+        # Closes the Main Window
+        self.cancel.clicked.connect(self.canceled)
+        h_layout = QHBoxLayout()
+        h_layout.addWidget(self.enter)
+        h_layout.addWidget(self.cancel)
 
-# Creating QLabel Widget
-# class Window(QWidget):
-#     def __init__(self):
-#         # Inherit from QWidget
-#         super().__init__()
-#         # Window dimensions
-#         self.resize(300, 250)
-#         # Name of the window
-#         self.setWindowTitle("PyQt Widget Test")
+        layout = QVBoxLayout()
+        layout.addWidget(self.combobox)
+        layout.addLayout(h_layout)
 
-#         # What the widget will say
-#         label = QLabel("GUI Application with PyQt6", self)
-#         # Location inside the window, default it (0,0)
-#         label.move(80, 100)
+        container = QWidget()
+        container.setLayout(layout)
+
+        self.setCentralWidget(container)
+    
+    def next_step(self, index):
+        # Pass this into original menu and start spark
+        selected = self.combobox.itemText(index)
+        print (selected)
+    
+    def open_window(self):
+        # Main problem would be that there isn't a default option if nothing is chosen
+        # From the combobox 
+        if self.w is None:
+            self.w = graphWindow()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None
+
+    def canceled(self):
+        sys.exit(app.exit())
+    
 
 app = QApplication(sys.argv)
-Window = Window()
-Window.show()
+window = MainWindow()
+window.show()
 sys.exit(app.exec())
