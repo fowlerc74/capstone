@@ -1,7 +1,9 @@
 from PyQt6.QtWidgets import (
     QComboBox, QWidget, QApplication, QMainWindow, QVBoxLayout, QPushButton, QHBoxLayout, QGridLayout, QMenuBar)
 from PyQt6.QtGui import QAction
+from PyQt6.QtCore import Qt
 from new_menu import *
+import pyqtgraph as pg
 import sys
 import os
 
@@ -9,29 +11,47 @@ import os
 # and also implement the hovering, filtering, and coordination features.
 class graphWindow(QWidget):
 
-    def __init__(self):
+    def __init__(self, csv):
         super().__init__()
+        # Sets up the data frame and prints the schema to CL
+        self.sdf = setup(csv)
         # Window Title
         self.setWindowTitle("Graphing Window")
         self.resize(900, 700)
-
-        layout = QGridLayout()
-        self.setLayout(layout)
+        
+        self.gLayout = QGridLayout()
 
         menubar = QMenuBar()
-        layout.addWidget(menubar, 0, 0)
+        self.gLayout.addWidget(menubar, 0, 0)
         # Change csv files -> close spark and setup again
         actionFile = menubar.addMenu("File")
         actionFile.addAction("New")
         # add the machine learning options to pick from.
         actionML = menubar.addMenu("ML Options")
         linear_button = QAction("Linear Regression", actionML)
+        linear_button.triggered.connect(self.linear_action)
         actionML.addAction(linear_button)
         # View
         # # Holds Filter, Reset, etc.
-
-    # def linear_action(self):
-
+        self.setLayout(self.gLayout)
+        
+    
+    def linear_action(self):
+        self.sdf.printSchema()
+        pred, daily_rain, date_arr = get_linear_plot(self.sdf)
+        print(pred)
+        print(daily_rain)
+        print(date_arr)
+        h_layout = QHBoxLayout()
+        self.graphWidget = pg.PlotWidget()
+        self.graphWidget.plot(date_arr, pred)
+        h_layout.addWidget(self.graphWidget)
+        self.gLayout.addLayout(h_layout, 1, 0)
+        
+        
+        
+        
+        
 
 # Main window, this will display the csv files to choose from and take the
 # user choice and open the graph window. 
@@ -92,10 +112,9 @@ class MainWindow(QMainWindow):
         if self.csv != None:
             # If a graph window is not already open
             if self.w is None:
-                # Pass csv file into new menu setup() -> Need a way to pass the csv file to graph window
-                # setup(self.csv) -> put this into graph window
+                # Pass csv file into graph window
                 # display graph window
-                self.w = graphWindow()
+                self.w = graphWindow(self.csv)
                 self.w.show()
             else:
                 # Closes graph window if already open and sets to None again.
