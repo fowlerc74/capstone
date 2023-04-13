@@ -5,6 +5,7 @@ from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.sql.functions import col
 
 
+
 def linear(sdf):
     # Drops NULL values
     sdf = sdf.na.drop()
@@ -44,6 +45,4 @@ def linear(sdf):
     # Predictions on the results from test data
     predictions = trained_rain_model.transform(unlabeled_data)
 
-    return rain_results, predictions
-
-
+    return predictions, test_data
