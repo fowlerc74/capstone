@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import (
-    QComboBox, QWidget, QApplication, QMainWindow, QVBoxLayout, QPushButton, QHBoxLayout, QLabel)
+    QComboBox, QWidget, QApplication, QMainWindow, QVBoxLayout, QPushButton, QHBoxLayout, QGridLayout, QMenuBar)
+from PyQt6.QtGui import QAction
 from new_menu import *
 import sys
 import os
@@ -7,15 +8,30 @@ import os
 # Window that will show the graph(s) options to pick the ML algorithms
 # and also implement the hovering, filtering, and coordination features.
 class graphWindow(QWidget):
+
     def __init__(self):
         super().__init__()
         # Window Title
         self.setWindowTitle("Graphing Window")
-        # Place holder until ready to show stuff
-        layout = QHBoxLayout()
-        self.label = QLabel("Options")
-        layout.addWidget(self.label)
+        self.resize(900, 700)
+
+        layout = QGridLayout()
         self.setLayout(layout)
+
+        menubar = QMenuBar()
+        layout.addWidget(menubar, 0, 0)
+        # Change csv files -> close spark and setup again
+        actionFile = menubar.addMenu("File")
+        actionFile.addAction("New")
+        # add the machine learning options to pick from.
+        actionML = menubar.addMenu("ML Options")
+        linear_button = QAction("Linear Regression", actionML)
+        actionML.addAction(linear_button)
+        # View
+        # # Holds Filter, Reset, etc.
+
+    # def linear_action(self):
+
 
 # Main window, this will display the csv files to choose from and take the
 # user choice and open the graph window. 
@@ -57,7 +73,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(container)
 
         # Once option is selected, the option is saved to self.csv.
-        self.combobox.activated.connect(self.next_step)
+        self.combobox.activated.connect(self.set_csv)
         # If option is picked in combo box, open new window.
         self.enter.clicked.connect(self.open_window)
         # Closes the Main Window.
@@ -66,9 +82,9 @@ class MainWindow(QMainWindow):
     # When an option is selected by the user in the combobox
     # it is then passed to self.csv that will be used again in
     # the graph window class.
-    def next_step(self):
+    def set_csv(self):
         self.csv = self.combobox.currentText()
-
+    
     # Opens the graph window and passes the chosen csv file into the
     # new menu setup.    
     def open_window(self):
@@ -76,8 +92,8 @@ class MainWindow(QMainWindow):
         if self.csv != None:
             # If a graph window is not already open
             if self.w is None:
-                # Pass csv file into new menu setup()
-                setup(self.csv)
+                # Pass csv file into new menu setup() -> Need a way to pass the csv file to graph window
+                # setup(self.csv) -> put this into graph window
                 # display graph window
                 self.w = graphWindow()
                 self.w.show()
@@ -90,7 +106,6 @@ class MainWindow(QMainWindow):
     def canceled(self):
         sys.exit(app.exit())
     
-
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
