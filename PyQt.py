@@ -35,16 +35,38 @@ class graphWindow(QWidget):
         # # Holds Filter, Reset, etc.
         self.setLayout(self.gLayout)
         
-    
+    # Displays linear regression graph and compares to the actual 
+    # daily precipitation values
     def linear_action(self):
+        # Displays the data frame schema for testing purposes
         self.sdf.printSchema()
+        # Saves the return values from the menu.
         pred, daily_rain, date_arr = get_linear_plot(self.sdf)
+
+        # Prints return values for testing
         print(pred)
         print(daily_rain)
         print(date_arr)
+
+        # Makes an HBox layout
         h_layout = QHBoxLayout()
+        # Makes a graph widget 
         self.graphWidget = pg.PlotWidget()
-        self.graphWidget.plot(date_arr, pred)
+        # Sets the background white for the graph
+        self.graphWidget.setBackground('w')
+        # Makes a red line for the graph
+        pen = pg.mkPen(color = (255, 0, 0))
+        # Makes a blue line for the graph
+        blue = pg.mkPen(color = (0, 255, 0))
+        # Sets the title of the graph
+        self.graphWidget.setTitle("Linear Regression")
+        # Labels both x and y
+        self.graphWidget.setLabel('left', 'Rain')
+        self.graphWidget.setLabel('bottom', 'Days')
+        # Plots the data for both the prediction and actual values
+        self.graphWidget.plot(date_arr, pred, pen = pen)
+        self.graphWidget.plot(date_arr, daily_rain, pen = blue)
+        # Adds the graph to the HBox layout and adds it to the grid layout
         h_layout.addWidget(self.graphWidget)
         self.gLayout.addLayout(h_layout, 1, 0)
         
