@@ -46,3 +46,33 @@ def linear(sdf):
     predictions = trained_rain_model.transform(unlabeled_data)
 
     return predictions, test_data
+
+def kmeans(sdf):
+     # Drops NULL values
+    sdf = sdf.na.drop()
+    # Creates vectors from dataset 
+    assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
+                                        'DailyAverageRelativeHumidity',
+                                        'DailyAverageSeaLevelPressure',
+                                        'DailyAverageStationPressure',
+                                        'DailyAverageWetBulbTemperature',
+                                        'DailyAverageWindSpeed',
+                                        'DailyCoolingDegreeDays',
+                                        'DailyHeatingDegreeDays',
+                                        'DailyMaximumDryBulbTemperature',
+                                        'DailyMinimumDryBulbTemperature',
+                                        'DailyPeakWindDirection',
+                                        'DailyPeakWindSpeed',
+                                        'DailyPrecipitation',
+                                        'DailySustainedWindSpeed'], outputCol= 'features')
+    new_df = assembler.transform(sdf)
+
+    n_clusters = 3
+
+    kmeans = KMeans(k = n_clusters)
+    kmeans_fit = kmeans.fit(new_df)
+    output = kmeans_fit.transform(new_df)
+    features = output.select('DailyPrecipitation')
+    predict = output.select('prediction')
+    
+    return predict, kmeans, features
