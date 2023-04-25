@@ -36,3 +36,16 @@ def get_linear_plot(sdf):
         i += 1
         date_arr.append(i)
     return daily_prediction, daily_rain, date_arr
+
+
+
+def get_kmeans(sdf):
+    predict, kmeans_out, features = kmeans(sdf)
+
+    change_predict = predict.select('prediction').toPandas()
+    predict_list = list(change_predict['prediction'])
+
+    change_features = features.select('DailyPrecipitation').toPandas()
+    features_list = list(change_features['DailyPrecipitation'])
+
+    return predict_list, kmeans_out, features_list
