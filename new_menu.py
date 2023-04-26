@@ -38,13 +38,15 @@ def get_linear_plot(sdf):
     return daily_prediction, daily_rain, date_arr
 
 
-
+# get_kmeans retrieves the results from running K-Means on the
+# Current csv file from new_ML_Part.
 def get_kmeans(sdf):
+    # Gets the results from kmeans in new_ML_Part
     predict, kmeans_out, features = kmeans(sdf)
-
+    # Makes a list of Predictions from K-Means
     change_predict = predict.select('prediction').toPandas()
     predict_list = list(change_predict['prediction'])
-
+    # Makes a list of Features from data frame -- Currently just takes Daily Precipitation.
     change_features = features.select('DailyPrecipitation').toPandas()
     features_list = list(change_features['DailyPrecipitation'])
 
