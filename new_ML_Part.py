@@ -1,11 +1,11 @@
-from pyspark.ml.feature import VectorAssembler,PCA
+from pyspark.ml.feature import VectorAssembler,PCA, StandardScaler
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.clustering import KMeans, GaussianMixture
 from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.sql.functions import col
+import numpy as np
 
-
-
+# Perform Linear Regression on selected columns from the csv file chosen
 def linear(sdf):
     # Drops NULL values
     sdf = sdf.na.drop()
@@ -47,6 +47,7 @@ def linear(sdf):
 
     return predictions, test_data
 
+#################### K-Means ######################
 def kmeans(sdf):
      # Drops NULL values
     sdf = sdf.na.drop()
@@ -66,12 +67,15 @@ def kmeans(sdf):
                                         'DailyPrecipitation',
                                         'DailySustainedWindSpeed'], outputCol= 'features')
     new_df = assembler.transform(sdf)
-
-    n_clusters = 3
-
+    # The Number of clusters, will be a another window that asks the user.
+    n_clusters = 4
+    # Trains a K-Means model using a certain number of clusters.
     kmeans = KMeans(k = n_clusters)
+    # Fits the features column to perform K-Means.
     kmeans_fit = kmeans.fit(new_df)
+    # Full output that has the cluster prediction and features added to the data frame.
     output = kmeans_fit.transform(new_df)
+    # SQL query to select the Daily Precipitation and prediction columns.
     features = output.select('DailyPrecipitation')
     predict = output.select('prediction')
     
