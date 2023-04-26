@@ -79,22 +79,30 @@ class graphWindow(QWidget):
         h_layout.addWidget(self.graphWidget)
         self.gLayout.addLayout(h_layout, 1, 0)
     
+    # K-means action takes the current csv file and performs K-Means and takes
+    # The clustering of data in a new scatter plot graph and displays to the graph window.
     def kmeans_action(self):
+        # Call get_kmeans in new_menu to get prediction, features array and kmeans object.
         predict_arr, kmeans, features_arr = get_kmeans(self.sdf)
-
+        # Creates a graph widget and set the background white.
         self.graphWidget = pg.PlotWidget(self, background='w')
+        # Change the prediction array into a numpy array.
         predict_arr = np.array(predict_arr)
+        # Change the features array into a numpy array -- Just does Daily Precipitation.
+        # Make another option box to pick which feature to choose.
         features_arr = np.array(features_arr)
-
+        # Get the amount of clusters.
         clusters = kmeans.getK()
+        # Creates the scatter plot.
         for i in range(clusters):
             brush = QBrush(pg.intColor(i, 3, alpha = 150))
             pen_color = QColor(pg.intColor(i, 3))
             self.graphWidget.scatterPlot(features_arr[predict_arr == i], symbolBrush = brush, pen = pen_color)
 
+        # Adds the graph to the HBox layout and adds it to the grid layout
         h_layout = QHBoxLayout()
         h_layout.addWidget(self.graphWidget)
-        self.gLayout.addLayout(h_layout, 1, 0)        
+        self.gLayout.addLayout(h_layout, 1, 0)
 
 # Main window, this will display the csv files to choose from and take the
 # user choice and open the graph window. 
