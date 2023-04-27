@@ -48,35 +48,33 @@ def linear(sdf):
     return predictions, test_data
 
 #################### K-Means ######################
-def kmeans(sdf):
-     # Drops NULL values
+def kmeans(sdf, n_clusters, assembler):
+    # Drops NULL values
     sdf = sdf.na.drop()
-    # Creates vectors from dataset 
-    assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
-                                        'DailyAverageRelativeHumidity',
-                                        'DailyAverageSeaLevelPressure',
-                                        'DailyAverageStationPressure',
-                                        'DailyAverageWetBulbTemperature',
-                                        'DailyAverageWindSpeed',
-                                        'DailyCoolingDegreeDays',
-                                        'DailyHeatingDegreeDays',
-                                        'DailyMaximumDryBulbTemperature',
-                                        'DailyMinimumDryBulbTemperature',
-                                        'DailyPeakWindDirection',
-                                        'DailyPeakWindSpeed',
-                                        'DailyPrecipitation',
-                                        'DailySustainedWindSpeed'], outputCol= 'features')
+    # Same DataFrame with features added to it
     new_df = assembler.transform(sdf)
-    # The Number of clusters, will be a another window that asks the user.
-    n_clusters = 4
-    # Trains a K-Means model using a certain number of clusters.
-    kmeans = KMeans(k = n_clusters)
+    # Trains the K-Means model and pass in a certain number of clusters
+    kmeans_algo = KMeans(initMode = "k-means||")
+    kmeans_algo.setK(n_clusters)
+    
     # Fits the features column to perform K-Means.
-    kmeans_fit = kmeans.fit(new_df)
+    kmeans_fit = kmeans_algo.fit(new_df)
     # Full output that has the cluster prediction and features added to the data frame.
     output = kmeans_fit.transform(new_df)
-    # SQL query to select the Daily Precipitation and prediction columns.
-    features = output.select('DailyPrecipitation')
-    predict = output.select('prediction')
-    
-    return predict, kmeans, features
+
+    evaluator = ClusteringEvaluator(predictionCol = 'prediction', featuresCol = 'features')
+    evaluator.setMetricName('silhouette')
+    evaluator.setDistanceMeasure('squaredEuclidean')
+    # Silhouette score measures how close each point in one cluster is to points in the
+    # neighboring cluster
+    silhouette_score = []
+
+    for i in range(2, 10):
+        silhouette_Kmeans = KMeans(featuresCol = 'features', k = i)
+        silhouette_Kmeans_fit = silhouette_Kmeans.fit(new_df)
+        silhouette_output = silhouette_Kmeans_fit.transform(new_df)
+
+        score = evaluator.evaluate(silhouette_output)
+        silhouette_score.append(score)
+        
+    return output, kmeans_algo, silhouette_score
