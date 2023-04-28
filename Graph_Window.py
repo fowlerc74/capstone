@@ -17,37 +17,82 @@ class graphWindow(QWidget):
         self.columns = get_columns(self.sdf)
         # Window Title
         self.setWindowTitle("Graphing Window")
-        self.resize(900, 700)
+        self.resize(1400, 700)
         # Grid Layout
         self.gLayout = QGridLayout()
-        # Adds a menu bar 
-        menubar = QMenuBar()
-        self.gLayout.addWidget(menubar, 0, 0)
+        self.gLayout.setColumnStretch(0, 3)
+        self.gLayout.setColumnStretch(1, 1)
+        self.gLayout.setRowStretch(0, 5)
+        self.gLayout.setRowStretch(1,4)
+        # Adds graph window
+        self.graphWin = QGridLayout()
+        self.gLayout.addLayout(self.graphWin, 0, 0)
+        # Adds filter window
+        self.filterWin = QVBoxLayout()
+        self.gLayout.addLayout(self.filterWin, 0, 1)
+        # Adds variable window
+        self.varWin = QHBoxLayout()
+        self.gLayout.addLayout(self.varWin, 1, 0)
+        # Adds ML option corner
+        self.mlWin = QGridLayout()
+        self.gLayout.addLayout(self.mlWin, 1, 1)
         # Change csv files -> close spark and setup again
-        actionFile = menubar.addMenu("File")
-        actionFile.addAction("New")
+        # actionFile = mloption.addMenu("File")
+        # actionFile.addAction("New")
         # add the machine learning options to pick from.
-        actionML = menubar.addMenu("ML Options")
-
-        linear_button = QAction("Linear Regression", actionML)
-        linear_button.triggered.connect(self.linear_action)
+        # mlWin = menubar.addMenu("ML Options")
+        title = QLabel("Graph")
+        self.graphWin.addWidget(title)
+        title = QLabel("Filters")
+        self.filterWin.addWidget(title)
+        title = QLabel("Variables")
+        self.varWin.addWidget(title)
+        linear_button = QPushButton("Linear Regression")
+        linear_button.clicked.connect(self.linear_action)
     
-        kmeans_button = QAction("K-Means", actionML)
-        kmeans_button.triggered.connect(self.kmeans_window)
+        kmeans_button = QPushButton("K-Means")
+        kmeans_button.clicked.connect(self.kmeans_window)
 
-        gaussian_button = QAction("Gaussian Mixture", actionML)
-        gaussian_button.triggered.connect(self.gaussian_window)
+        gaussian_button = QPushButton("Gaussian Mixture")
+        gaussian_button.clicked.connect(self.gaussian_window)
 
-        pca_button = QAction("Principal Component Analysis", actionML)
-        pca_button.triggered.connect(self.pca_window)
+        pca_button = QPushButton("Principal Component Analysis")
+        pca_button.clicked.connect(self.pca_window)
         
-        actionML.addAction(linear_button)
-        actionML.addAction(kmeans_button)
-        actionML.addAction(gaussian_button)
-        actionML.addAction(pca_button)
+        self.mlWin.addWidget(linear_button, 0, 0)
+        self.mlWin.addWidget(kmeans_button, 0, 1)
+        self.mlWin.addWidget(gaussian_button, 1, 0)
+        self.mlWin.addWidget(pca_button, 1, 1) 
+
         # View
         # # Holds Filter, Reset, etc.
         self.setLayout(self.gLayout)
+
+    # def init_filter_window(self):
+    #     title = QLabel("Filters")
+    #     self.filterWin.addWidget(title)
+
+    # def init_var_window(self):
+    #     title = QLabel("Variables")
+    #     self.filterWin.addWidget(title)
+
+    # def init_ml_window(self):
+    #     linear_button = QAction("Linear Regression", self.mlWin)
+    #     linear_button.triggered.connect(self.linear_action)
+    
+    #     kmeans_button = QAction("K-Means", self.mlWin)
+    #     kmeans_button.triggered.connect(self.kmeans_window)
+
+    #     gaussian_button = QAction("Gaussian Mixture", self.mlWin)
+    #     gaussian_button.triggered.connect(self.gaussian_window)
+
+    #     pca_button = QAction("Principal Component Analysis", self.mlWin)
+    #     pca_button.triggered.connect(self.pca_window)
+        
+    #     self.mlWin.addAction(linear_button)
+    #     self.mlWin.addAction(kmeans_button)
+    #     self.mlWin.addAction(gaussian_button)
+    #     self.mlWin.addAction(pca_button) 
         
     # Displays linear regression graph and compares to the actual 
     # daily precipitation values
@@ -84,7 +129,7 @@ class graphWindow(QWidget):
         self.graphWidget.plot(date_arr, daily_rain, pen = blue)
         # Adds the graph to the HBox layout and adds it to the grid layout
         h_layout.addWidget(self.graphWidget)
-        self.gLayout.addLayout(h_layout, 0, 0)
+        self.graphWin.addLayout(h_layout, 0, 0)
     
 
     def kmeans_window(self):
@@ -129,7 +174,7 @@ class graphWindow(QWidget):
         self.k_results_label.setFont(QFont('Times', 30))
         self.k_results.addWidget(self.k_results_label)
 
-        self.gLayout.addLayout(self.grid_k_layout, 0, 1)
+        self.graphWin.addLayout(self.grid_k_layout, 0, 1)
 
 
     # For now does 2 columns
@@ -214,5 +259,35 @@ class graphWindow(QWidget):
         # TODO
 
     def pca_window(self):
-        pass
+        self.pcaOptions = QVBoxLayout()
+        numCompLabel = QLabel("Number of Components:")
+        self.pcaOptions.addWidget(numCompLabel)
+        self.pcaTextbox = QLineEdit()
+        self.pcaTextbox.setValidator(QIntValidator())
+        self.pcaOptions.addWidget(self.pcaTextbox)
+        runPCA = QPushButton("Run PCA", self)
+        runPCA.clicked.connect(self.run_pca)
+        self.pcaOptions.addWidget(runPCA)
+
+        self.filterWin.addLayout(self.pcaOptions)
+
+    def run_pca(self):
+        self.pcaWin = QVBoxLayout()
+
+        self.numComp = int(self.pcaTextbox.text())
+        if self.numComp != None and self.numComp > 0:
+            model, data = pca(self.sdf, self.numComp, 5) # TODO not hard code 5
+            pcaLabel = QLabel("Principal Component Analysis")
+            self.pcaWin.addWidget(pcaLabel)
+            variances = QLabel("Explained Variances:" + str(model.explainedVariance))
+            self.pcaWin.addWidget(variances)
+            firstValuesLabel = QLabel("First 5 Data Points:")
+            self.pcaWin.addWidget(firstValuesLabel)
+            for out in data: 
+                values = QLabel(str(out.output))
+                self.pcaWin.addWidget(values)
+
+            self.graphWin.addLayout(self.pcaWin, 1, 0)
+
+
 
