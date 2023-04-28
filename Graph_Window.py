@@ -34,9 +34,17 @@ class graphWindow(QWidget):
     
         kmeans_button = QAction("K-Means", actionML)
         kmeans_button.triggered.connect(self.kmeans_window)
+
+        gaussian_button = QAction("Gaussian Mixture", actionML)
+        gaussian_button.triggered.connect(self.gaussian_window)
+
+        pca_button = QAction("Principal Component Analysis", actionML)
+        pca_button.triggered.connect(self.pca_window)
         
         actionML.addAction(linear_button)
         actionML.addAction(kmeans_button)
+        actionML.addAction(gaussian_button)
+        actionML.addAction(pca_button)
         # View
         # # Holds Filter, Reset, etc.
         self.setLayout(self.gLayout)
@@ -201,5 +209,10 @@ class graphWindow(QWidget):
         self.k_results.addWidget(self.tableWidget)
         self.gLayout.addLayout(self.k_results, 1, 1)
                 
+    def gaussian_window(self):
+        pass
+        # TODO
 
+    def pca_window(self):
+        pass
 

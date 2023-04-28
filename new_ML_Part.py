@@ -79,6 +79,49 @@ def kmeans(sdf, n_clusters, assembler):
         
     return output, kmeans_algo, silhouette_score
 
+####### Gaussian Mixture #######
+# Clustering Algorithm
+def gaussian(sdf):
+    # Drops NULL values
+    sdf = sdf.na.drop() # checking if we can use the same csv without dropping NULL values
+    num_k = 4
+    assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
+                                        'DailyAverageRelativeHumidity',
+                                        'DailyAverageSeaLevelPressure',
+                                        'DailyAverageStationPressure',
+                                        'DailyAverageWetBulbTemperature',
+                                        'DailyAverageWindSpeed',
+                                        'DailyCoolingDegreeDays',
+                                        'DailyDepartureFromNormalAverageTemperature',
+                                        'DailyHeatingDegreeDays',
+                                        'DailyMaximumDryBulbTemperature',
+                                        'DailyMinimumDryBulbTemperature',
+                                        'DailyPeakWindDirection',
+                                        'DailyPeakWindSpeed',
+                                        'DailySustainedWindSpeed',
+                                        'DailyWeather'], outputCol= 'features')
+    df = assembler.transform(sdf)
+    #parsedData = df.map(lambda line: array([float(x) for x in line.strip().split(' ')]))
+
+    # Build the model (cluster the data)
+    gm = GaussianMixture(k=num_k, tol=.001)
+    gm.setMaxIter(30)
+    model = gm.fit(df)
+
+    
+    # output parameters of model
+    print("\n\nGaussian Mixture Model (GMM)")
+    print("============================")
+    print("Number of clusters: ", num_k)
+    print("Max iterations: ", gm.getMaxIter())
+    # print("Number of Features: ", len(model.getFeaturesCol()), "\n")
+    for i in range(num_k):
+        print("--------------------------------------")
+        print("Cluster ", str(i + 1), ":")
+        print("# of items: ", model.summary.clusterSizes[i])
+        print("Weight: ", model.weights[i])
+        print("--------------------------------------")
+
 ####### Principal Component Analysis #######
 # PCA: Reduces dimensionality of large data sets
 def pca(sdf):
