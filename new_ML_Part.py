@@ -46,3 +46,41 @@ def linear(sdf):
     predictions = trained_rain_model.transform(unlabeled_data)
 
     return predictions, test_data
+
+####### Principal Component Analysis #######
+# PCA: Reduces dimensionality of large data sets
+def pca(sdf):
+    # Drops NULL values
+    sdf = sdf.na.drop() # checking if we can use the same csv without dropping NULL values
+    # Can remove some of these if wanted
+    assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
+                                        'DailyAverageRelativeHumidity',
+                                        'DailyAverageSeaLevelPressure',
+                                        'DailyAverageStationPressure',
+                                        'DailyAverageWetBulbTemperature',
+                                        'DailyAverageWindSpeed',
+                                        'DailyCoolingDegreeDays',
+                                        'DailyDepartureFromNormalAverageTemperature',
+                                        'DailyHeatingDegreeDays',
+                                        'DailyMaximumDryBulbTemperature',
+                                        'DailyMinimumDryBulbTemperature',
+                                        'DailyPeakWindDirection',
+                                        'DailyPeakWindSpeed',
+                                        'DailySustainedWindSpeed'], outputCol= 'features')
+    df = assembler.transform(sdf)
+
+    # setup pca
+    pca = PCA(k=2, inputCol="features")
+    pca.setOutputCol("PCA_Features")
+    # run pca
+    model = pca.fit(df)
+    model.setOutputCol("output")
+    
+    # output
+    print("Principal Component Analysis")
+    print("============================")
+    print("Explained Variance: ", model.explainedVariance)
+    num = 5
+    print("First ", num, " values:")
+    for out in model.transform(df).collect()[:num]:
+        print(out.output)

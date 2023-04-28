@@ -195,7 +195,7 @@ def gaussian(sdf):
 def pca(sdf):
     # Drops NULL values
     sdf = sdf.na.drop() # checking if we can use the same csv without dropping NULL values
-    # Change this so that each one is its own vector maybe ?
+    # Can remove some of these if wanted
     assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
                                         'DailyAverageRelativeHumidity',
                                         'DailyAverageSeaLevelPressure',
@@ -209,8 +209,7 @@ def pca(sdf):
                                         'DailyMinimumDryBulbTemperature',
                                         'DailyPeakWindDirection',
                                         'DailyPeakWindSpeed',
-                                        'DailySustainedWindSpeed',
-                                        'DailyWeather'], outputCol= 'features')
+                                        'DailySustainedWindSpeed'], outputCol= 'features')
     df = assembler.transform(sdf)
 
     # setup pca
@@ -223,7 +222,10 @@ def pca(sdf):
     # output
     print("Principal Component Analysis")
     print("============================")
-    for out in model.transform(df).collect():
+    print("Explained Variance: ", model.explainedVariance)
+    num = 5
+    print("First ", num, " values:")
+    for out in model.transform(df).collect()[:num]:
         print(out.output)
     
 
