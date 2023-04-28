@@ -36,3 +36,18 @@ def get_linear_plot(sdf):
         i += 1
         date_arr.append(i)
     return daily_prediction, daily_rain, date_arr
+
+
+# get_kmeans retrieves the results from running K-Means on the
+# Current csv file from new_ML_Part.
+def get_kmeans(sdf, n_clusters, assembler):
+    # Gets the results from k-means in new_ML_Part
+    output, kmeans_out, silhouette_score = kmeans(sdf, n_clusters, assembler)
+    return output, silhouette_score, kmeans_out
+
+# Returns the columns to choose from for K-Means
+def get_columns(sdf):
+    columns = ['DailyAverageDryBulbTemperature', 
+               'DailyAverageStationPressure', 
+               'DailyPrecipitation']
+    return columns

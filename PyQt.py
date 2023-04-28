@@ -1,8 +1,9 @@
 from PyQt6.QtWidgets import (
-    QComboBox, QWidget, QApplication, QMainWindow, QVBoxLayout, QPushButton, QHBoxLayout, QGridLayout, QMenuBar)
-from PyQt6.QtGui import QAction
+    QComboBox, QWidget, QApplication, QMainWindow, QVBoxLayout, QPushButton, QHBoxLayout, QGridLayout, QMenuBar, QFrame)
+from PyQt6.QtGui import QAction, QBrush, QColor
 from PyQt6.QtCore import Qt
 from new_menu import *
+import numpy as np
 import pyqtgraph as pg
 import sys
 import os
@@ -28,9 +29,15 @@ class graphWindow(QWidget):
         actionFile.addAction("New")
         # add the machine learning options to pick from.
         actionML = menubar.addMenu("ML Options")
+
         linear_button = QAction("Linear Regression", actionML)
         linear_button.triggered.connect(self.linear_action)
+    
+        kmeans_button = QAction("K-Means", actionML)
+        kmeans_button.triggered.connect(self.kmeans_action)
+        
         actionML.addAction(linear_button)
+        actionML.addAction(kmeans_button)
         # View
         # # Holds Filter, Reset, etc.
         self.setLayout(self.gLayout)
@@ -52,12 +59,14 @@ class graphWindow(QWidget):
         h_layout = QHBoxLayout()
         # Makes a graph widget 
         self.graphWidget = pg.PlotWidget()
+        # Add a border around the graph
+        self.graphWidget.setStyleSheet("border: 5px solid blue;")
         # Sets the background white for the graph
         self.graphWidget.setBackground('w')
-        # Makes a red line for the graph
+        # Makes a red line for the graph -- Prediction
         pen = pg.mkPen(color = (255, 0, 0))
-        # Makes a blue line for the graph
-        blue = pg.mkPen(color = (0, 255, 0))
+        # Makes a blue line for the graph -- Actual rain values
+        blue = pg.mkPen(color = (0, 0, 255))
         # Sets the title of the graph
         self.graphWidget.setTitle("Linear Regression")
         # Labels both x and y
@@ -69,11 +78,31 @@ class graphWindow(QWidget):
         # Adds the graph to the HBox layout and adds it to the grid layout
         h_layout.addWidget(self.graphWidget)
         self.gLayout.addLayout(h_layout, 1, 0)
-        
-        
-        
-        
-        
+    
+    # K-means action takes the current csv file and performs K-Means and takes
+    # The clustering of data in a new scatter plot graph and displays to the graph window.
+    def kmeans_action(self):
+        # Call get_kmeans in new_menu to get prediction, features array and kmeans object.
+        predict_arr, kmeans, features_arr = get_kmeans(self.sdf)
+        # Creates a graph widget and set the background white.
+        self.graphWidget = pg.PlotWidget(self, background='w')
+        # Change the prediction array into a numpy array.
+        predict_arr = np.array(predict_arr)
+        # Change the features array into a numpy array -- Just does Daily Precipitation.
+        # Make another option box to pick which feature to choose.
+        features_arr = np.array(features_arr)
+        # Get the amount of clusters.
+        clusters = kmeans.getK()
+        # Creates the scatter plot.
+        for i in range(clusters):
+            brush = QBrush(pg.intColor(i, 3, alpha = 150))
+            pen_color = QColor(pg.intColor(i, 3))
+            self.graphWidget.scatterPlot(features_arr[predict_arr == i], symbolBrush = brush, pen = pen_color)
+
+        # Adds the graph to the HBox layout and adds it to the grid layout
+        h_layout = QHBoxLayout()
+        h_layout.addWidget(self.graphWidget)
+        self.gLayout.addLayout(h_layout, 1, 0)
 
 # Main window, this will display the csv files to choose from and take the
 # user choice and open the graph window. 

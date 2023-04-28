@@ -1,11 +1,11 @@
-from pyspark.ml.feature import VectorAssembler,PCA
+from pyspark.ml.feature import VectorAssembler,PCA, StandardScaler
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.clustering import KMeans, GaussianMixture
 from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.sql.functions import col
+import numpy as np
 
-
-
+# Perform Linear Regression on selected columns from the csv file chosen
 def linear(sdf):
     # Drops NULL values
     sdf = sdf.na.drop()
@@ -46,6 +46,38 @@ def linear(sdf):
     predictions = trained_rain_model.transform(unlabeled_data)
 
     return predictions, test_data
+
+#################### K-Means ######################
+def kmeans(sdf, n_clusters, assembler):
+    # Drops NULL values
+    sdf = sdf.na.drop()
+    # Same DataFrame with features added to it
+    new_df = assembler.transform(sdf)
+    # Trains the K-Means model and pass in a certain number of clusters
+    kmeans_algo = KMeans(initMode = "k-means||")
+    kmeans_algo.setK(n_clusters)
+    
+    # Fits the features column to perform K-Means.
+    kmeans_fit = kmeans_algo.fit(new_df)
+    # Full output that has the cluster prediction and features added to the data frame.
+    output = kmeans_fit.transform(new_df)
+
+    evaluator = ClusteringEvaluator(predictionCol = 'prediction', featuresCol = 'features')
+    evaluator.setMetricName('silhouette')
+    evaluator.setDistanceMeasure('squaredEuclidean')
+    # Silhouette score measures how close each point in one cluster is to points in the
+    # neighboring cluster
+    silhouette_score = []
+
+    for i in range(2, 10):
+        silhouette_Kmeans = KMeans(featuresCol = 'features', k = i)
+        silhouette_Kmeans_fit = silhouette_Kmeans.fit(new_df)
+        silhouette_output = silhouette_Kmeans_fit.transform(new_df)
+
+        score = evaluator.evaluate(silhouette_output)
+        silhouette_score.append(score)
+        
+    return output, kmeans_algo, silhouette_score
 
 ####### Principal Component Analysis #######
 # PCA: Reduces dimensionality of large data sets
