@@ -82,8 +82,22 @@ def kmeans(sdf, n_clusters, assembler):
 ####### Gaussian Mixture #######
 # Clustering Algorithm
 def gaussian(sdf, num_clusters):
-    # Drops NULL values
+    """
+    TODO code currently taken from old ml_part, needs adjusting
+    
+    Performs a Gaussian Mixture Clustering Algorithm on a dataframe
+
+    Parameters:
+        sdf: the dataframe to run Gaussian Mixture on
+        num_clusters: the requested number of clusters
+
+    Returns
+        TODO currently returns nothing, will change
+    """
+
+    # Drop null values
     sdf = sdf.na.drop()
+    # Combine input comumns into one vector
     assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
                                         'DailyAverageRelativeHumidity',
                                         'DailyAverageSeaLevelPressure',
@@ -99,10 +113,11 @@ def gaussian(sdf, num_clusters):
                                         'DailyPeakWindSpeed',
                                         'DailySustainedWindSpeed',
                                         'DailyWeather'], outputCol= 'features')
+    # Create a new df with the transformed columns
     df = assembler.transform(sdf)
-    #parsedData = df.map(lambda line: array([float(x) for x in line.strip().split(' ')]))
 
     # Build the model (cluster the data)
+    # TODO hard coded values, need to change
     gm = GaussianMixture(k=num_clusters, tol=.001)
     gm.setMaxIter(30)
     model = gm.fit(df)
@@ -111,10 +126,10 @@ def gaussian(sdf, num_clusters):
     # output parameters of model
     print("\n\nGaussian Mixture Model (GMM)")
     print("============================")
-    print("Number of clusters: ", num_k)
+    print("Number of clusters: ", num_clusters)
     print("Max iterations: ", gm.getMaxIter())
     # print("Number of Features: ", len(model.getFeaturesCol()), "\n")
-    for i in range(num_k):
+    for i in range(num_clusters):
         print("--------------------------------------")
         print("Cluster ", str(i + 1), ":")
         print("# of items: ", model.summary.clusterSizes[i])
@@ -128,14 +143,19 @@ def pca(sdf, num_comp, num_results):
     """
     Runs Principal Component Analysis to reduce the dimensionality of the dataset. 
 
-    sdf:         the dataframe to run PCA on
-    num_comp:    (k value) the number of components to reduce to
-    num_results: the number of reduced datapoints to return 
+    Parameters:
+        sdf:         the dataframe to run PCA on
+        num_comp:    (k value) the number of components to reduce to
+        num_results: the number of reduced datapoints to return 
+
+    Returns: 
+        the model,
+        the requested number of modified datapoints
     """
 
     # Drops NULL values
     sdf = sdf.na.drop() 
-    # Can remove some of these if wanted
+    # Combine input comumns into one vector
     assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
                                         'DailyAverageRelativeHumidity',
                                         'DailyAverageSeaLevelPressure',
@@ -150,14 +170,14 @@ def pca(sdf, num_comp, num_results):
                                         'DailyPeakWindDirection',
                                         'DailyPeakWindSpeed',
                                         'DailySustainedWindSpeed'], outputCol= 'features')
-    # Transform the dataframe to have the new columns
+    # Create a new df with the transformed columns
     df = assembler.transform(sdf)
 
-    # Setup pca
+    # Setup PCA
     print(num_comp)
     pca = PCA(k=num_comp, inputCol="features")
     pca.setOutputCol("PCA_Features")
-    # Run pca
+    # Run PCA
     model = pca.fit(df)
     model.setOutputCol("output")
 
