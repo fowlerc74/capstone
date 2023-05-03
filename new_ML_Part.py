@@ -5,8 +5,19 @@ from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.sql.functions import col
 import numpy as np
 
-# Perform Linear Regression on selected columns from the csv file chosen
+#################### Linear Regression ######################
 def linear(sdf):
+    """
+    Runs Linear Regression
+
+    Parameters:
+        sdf: the dataframe to run Linear Regression on
+
+    Returns: 
+        the predictions,
+        the test data
+    """
+
     # Drops NULL values
     sdf = sdf.na.drop()
     # Creates vectors from dataset 
@@ -49,6 +60,20 @@ def linear(sdf):
 
 #################### K-Means ######################
 def kmeans(sdf, n_clusters, assembler):
+    """
+    Runs K Means Clustering to cluster the datapoints. 
+
+    Parameters:
+        sdf:        the dataframe to run K Means on
+        n_clusters: (k value) the number clusters to create
+        assembler:  a Vector Assembler that has the features to cluster on
+
+    Returns: 
+        the output,
+        K Means algorithm, 
+        Silhouette score
+    """
+
     # Drops NULL values
     sdf = sdf.na.drop()
     # Same DataFrame with features added to it
@@ -121,7 +146,6 @@ def gaussian(sdf, num_clusters):
     gm = GaussianMixture(k=num_clusters, tol=.001)
     gm.setMaxIter(30)
     model = gm.fit(df)
-
     
     # output parameters of model
     print("\n\nGaussian Mixture Model (GMM)")
