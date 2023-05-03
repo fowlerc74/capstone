@@ -81,10 +81,9 @@ def kmeans(sdf, n_clusters, assembler):
 
 ####### Gaussian Mixture #######
 # Clustering Algorithm
-def gaussian(sdf):
+def gaussian(sdf, num_clusters):
     # Drops NULL values
-    sdf = sdf.na.drop() # checking if we can use the same csv without dropping NULL values
-    num_k = 4
+    sdf = sdf.na.drop()
     assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
                                         'DailyAverageRelativeHumidity',
                                         'DailyAverageSeaLevelPressure',
@@ -104,7 +103,7 @@ def gaussian(sdf):
     #parsedData = df.map(lambda line: array([float(x) for x in line.strip().split(' ')]))
 
     # Build the model (cluster the data)
-    gm = GaussianMixture(k=num_k, tol=.001)
+    gm = GaussianMixture(k=num_clusters, tol=.001)
     gm.setMaxIter(30)
     model = gm.fit(df)
 
@@ -122,11 +121,20 @@ def gaussian(sdf):
         print("Weight: ", model.weights[i])
         print("--------------------------------------")
 
+
 ####### Principal Component Analysis #######
 # PCA: Reduces dimensionality of large data sets
 def pca(sdf, num_comp, num_results):
+    """
+    Runs Principal Component Analysis to reduce the dimensionality of the dataset. 
+
+    sdf:         the dataframe to run PCA on
+    num_comp:    (k value) the number of components to reduce to
+    num_results: the number of reduced datapoints to return 
+    """
+
     # Drops NULL values
-    sdf = sdf.na.drop() # checking if we can use the same csv without dropping NULL values
+    sdf = sdf.na.drop() 
     # Can remove some of these if wanted
     assembler = VectorAssembler(inputCols=['DailyAverageDryBulbTemperature',
                                         'DailyAverageRelativeHumidity',
@@ -142,23 +150,15 @@ def pca(sdf, num_comp, num_results):
                                         'DailyPeakWindDirection',
                                         'DailyPeakWindSpeed',
                                         'DailySustainedWindSpeed'], outputCol= 'features')
+    # Transform the dataframe to have the new columns
     df = assembler.transform(sdf)
 
-    # setup pca
+    # Setup pca
     print(num_comp)
     pca = PCA(k=num_comp, inputCol="features")
     pca.setOutputCol("PCA_Features")
-    # run pca
+    # Run pca
     model = pca.fit(df)
     model.setOutputCol("output")
-    
-    # output
-    # print("Principal Component Analysis")
-    # print("============================")
-    # print("Explained Variance: ", model.explainedVariance)
-    # num = 5
-    # print("First ", num, " values:")
-    # for out in model.transform(df).collect()[:num]:
-    #     print(out.output)
 
     return model, model.transform(df).collect()[:num_results]

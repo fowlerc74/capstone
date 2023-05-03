@@ -175,7 +175,6 @@ def gaussian(sdf):
     gm = GaussianMixture(k=num_k, tol=.001)
     gm.setMaxIter(30)
     model = gm.fit(df)
-
     
     # output parameters of model
     print("\n\nGaussian Mixture Model (GMM)")
