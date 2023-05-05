@@ -14,7 +14,7 @@ class graphWindow(QWidget):
         super().__init__()
         # Sets up the data frame and prints the schema to CL
         self.sdf = setup(csv)
-        self.columns = get_columns(self.sdf)
+        self.columns = get_columns()
         # Window Title
         self.setWindowTitle("Graphing Window")
         self.resize(1400, 700)
@@ -79,21 +79,17 @@ class graphWindow(QWidget):
     def init_filter_window(self):
         title = QLabel("Filters")
         self.filterWin.addWidget(title)
-
     def init_var_window(self):
         title = QLabel("Variables")
         self.filterWin.addWidget(title)
-
     def init_ml_window(self):
         linear_button = QAction("Linear Regression", self.mlWin)
         linear_button.triggered.connect(self.linear_action)
     
         kmeans_button = QAction("K-Means", self.mlWin)
         kmeans_button.triggered.connect(self.kmeans_window)
-
         gaussian_button = QAction("Gaussian Mixture", self.mlWin)
         gaussian_button.triggered.connect(self.gaussian_window)
-
         pca_button = QAction("Principal Component Analysis", self.mlWin)
         pca_button.triggered.connect(self.pca_window)
         
@@ -106,18 +102,11 @@ class graphWindow(QWidget):
     # Displays linear regression graph and compares to the actual 
     # daily precipitation values
     def linear_action(self):
-        # Displays the data frame schema for testing purposes
-        self.sdf.printSchema()
         # Saves the return values from the menu.
         pred, daily_rain, date_arr = get_linear_plot(self.sdf)
 
-        # Prints return values for testing
-        print(pred)
-        print(daily_rain)
-        print(date_arr)
-
         # Makes an HBox layout
-        h_layout = QHBoxLayout()
+        self.h_layout = QHBoxLayout()
         # Makes a graph widget 
         self.graph_widget = pg.PlotWidget()
         # Add a border around the graph
@@ -137,35 +126,39 @@ class graphWindow(QWidget):
         self.graph_widget.plot(date_arr, pred, pen = pen)
         self.graph_widget.plot(date_arr, daily_rain, pen = blue)
         # Adds the graph to the HBox layout and adds it to the grid layout
-        h_layout.addWidget(self.graph_widget)
-        self.graph_win.addLayout(h_layout, 0, 0)
-    
+        self.h_layout.addWidget(self.graph_widget)
+        self.graph_win.addLayout(self.h_layout, 0, 0)
+
+    # Displays options that the user will use to start the initial setup for 
+    # K-Means to run properly.
     def kmeans_window(self):
         self.grid_k_layout = QGridLayout()
-        self.kmeans_label = QLabel("K-Means Options")
-        self.kmeans_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.kmeans_label.setFont(QFont('Times', 30))
-        self.grid_k_layout.addWidget(self.kmeans_label, 1, 1)
+        self.k_results = QVBoxLayout()
+    
+        self.k_means_label = QLabel("K-Means Options")
+        self.k_means_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.k_means_label.setFont(QFont('Times', 30))
+        self.grid_k_layout.addWidget(self.k_means_label, 1, 1)
 
         self.column_label = QLabel("Choose a element to perform K-Means on:")
-        self.grid_k_layout.addWidget(self.column_label, 3, 1)
-        self.combobox1 = QComboBox()
-        self.combobox1.addItems(self.columns)  
-        self.grid_k_layout.addWidget(self.combobox1, 4, 1)
         self.column1 = None
-        self.combobox1.activated.connect(self.set_kColumn1)
-        self.combobox2 = QComboBox()
-        self.combobox2.addItems(self.columns)  
-        self.grid_k_layout.addWidget(self.combobox2, 5, 1)
         self.column2 = None
         self.vector = None
+        self.combobox1 = QComboBox()
+        self.combobox2 = QComboBox()
+        self.combobox1.addItems(self.columns)
+        self.combobox2.addItems(self.columns)
+        self.grid_k_layout.addWidget(self.column_label, 3, 1)
+        self.grid_k_layout.addWidget(self.combobox1, 4, 1)
+        self.grid_k_layout.addWidget(self.combobox2, 5, 1)
+        self.combobox1.activated.connect(self.set_kColumn1)
         self.combobox2.activated.connect(self.set_kColumn2)
 
         self.k_num = QLabel("Number of Clusters:")
-        self.grid_k_layout.addWidget(self.k_num, 6, 1)
+        self.k = None
         self.textbox = QLineEdit()
         self.textbox.setValidator(QIntValidator())
-        self.k = None
+        self.grid_k_layout.addWidget(self.k_num, 6, 1)
         self.grid_k_layout.addWidget(self.textbox, 7, 1)
 
         # Enter and Cancel buttons
@@ -175,40 +168,37 @@ class graphWindow(QWidget):
         self.grid_k_layout.addWidget(self.cancel, 8, 2)
         self.enter.clicked.connect(self.check_setup)
         self.cancel.clicked.connect(self.close)
-
-        self.k_results = QVBoxLayout()
-        self.k_results_label = QLabel('K-Means results')
-        self.k_results_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.k_results_label.setFont(QFont('Times', 30))
-        self.k_results.addWidget(self.k_results_label)
-
-        self.graph_win.addLayout(self.grid_k_layout, 0, 1)
+        
+        self.filter_win.addLayout(self.grid_k_layout)
 
 
-    # For now does 2 columns
+    # Sets the first column to perform K-Means on
     def set_kColumn1(self):
         self.column1 = self.combobox1.currentText()
     
+    # Sets the second column to perform K-Means on
     def set_kColumn2(self):
         self.column2 = self.combobox2.currentText()
     
+    # Sets the number of clusters.
     def set_clusters(self):
         self.k = int(self.textbox.text())
-        
+    
+    # Checks that all values are valid before running K-Means and returns the values
+    # to be used for making both the cluster and silhouette graph  
     def check_setup(self):
         self.set_clusters()
         self.vector_assembler()
         if (self.k != None and self.column1 != None and self.column2 != None and self.vector != None):
             output, silhouette, clusters = get_kmeans(self.sdf, self.k, self.vector)
             predict_select = output.select('prediction').toPandas()
-            
-            self.kmeans_output = output
 
             feature_select = output.select(self.column1, self.column2).toPandas()
             
 
             self.kmeans_action(predict_select, feature_select, clusters, silhouette)
-
+    
+    # Makes a vector from what the user selected in the K-Means option window
     def vector_assembler(self):
         self.vector = VectorAssembler(inputCols = [self.column1, self.column2],
                                          outputCol = 'features')
@@ -228,7 +218,6 @@ class graphWindow(QWidget):
 
         silhouette_score = np.array(silhouette_score)
 
-
         self.create_table()
 
         # Get the amount of clusters.
@@ -238,18 +227,28 @@ class graphWindow(QWidget):
             brush = QBrush(pg.intColor(i, clusters, alpha = 150))
             pen_color = QColor(pg.intColor(i, clusters))
             self.graph_widget.scatterPlot(features_arr[predict_arr == i], symbolBrush = brush, pen = pen_color)
-        
+
+        self.graph_widget.setTitle('K-Means Clustering')
+        self.graph_widget.setLabel('left', self.column1)
+        self.graph_widget.setLabel('bottom', self.column2)
+
         self.sil_graph.setTitle('K-Means Silhouette Score')
         self.sil_graph.setLabel('left', 'Cost')
         self.sil_graph.setLabel('bottom', '# of Clusters')
         self.sil_graph.plot(range(2,10), silhouette_score, pen = pg.mkPen('b', width = 3))
 
+        self.graph_win.addWidget(self.graph_widget, 0, 0)
+        self.graph_win.addWidget(self.sil_graph, 0, 1)
+
         # Adds the graph to the HBox layout and adds it to the grid layout
         h_layout = QHBoxLayout()
-        h_layout.addWidget(self.graph_widget)
-        h_layout.addWidget(self.sil_graph)
-        self.layout.addLayout(h_layout, 0, 0)
+        # h_layout.addWidget(self.graph_widget)
+        # h_layout.addWidget(self.sil_graph)
+        self.graph_win.addLayout(h_layout, 0, 0)
+        # self.layout.addLayout(h_layout, 0, 0)
     
+    # This creates a table to view all points in the K-Means cluster graph
+    # and view which cluster the point belongs to.
     def create_table(self):
         self.table_widget = QTableWidget()
         hold_column_names = [self.column1, self.column2, 'Prediction']
@@ -260,7 +259,8 @@ class graphWindow(QWidget):
 
 
         self.k_results.addWidget(self.table_widget)
-        self.layout.addLayout(self.k_results, 1, 1)
+        self.layout.addLayout(self.k_results, 1, 0)
+    
 
     # Creates the gaussian distribution window, not implemented yet
     def gaussian_window(self):
@@ -314,6 +314,3 @@ class graphWindow(QWidget):
 
             # Add to the graph window, default to bottom left
             self.graph_win.addLayout(self.pca_win, 1, 0)
-
-
-
