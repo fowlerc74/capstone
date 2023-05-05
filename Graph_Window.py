@@ -14,7 +14,7 @@ class graphWindow(QWidget):
         super().__init__()
         # Sets up the data frame and prints the schema to CL
         self.sdf = setup(csv)
-        self.columns = get_columns()
+        self.columns = get_columns(self.sdf)
         # Window Title
         self.setWindowTitle("Graphing Window")
         self.resize(1400, 700)
