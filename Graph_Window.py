@@ -132,50 +132,51 @@ class graphWindow(QWidget):
     # Displays options that the user will use to start the initial setup for 
     # K-Means to run properly.
     def kmeans_window(self):
-        self.grid_k_layout = QGridLayout()
+        self.kmeans_options = QVBoxLayout()
         self.k_results = QVBoxLayout()
     
         self.k_means_label = QLabel("K-Means Options")
         self.k_means_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         self.k_means_label.setFont(QFont('Times', 30))
-        self.grid_k_layout.addWidget(self.k_means_label, 1, 1)
+        self.kmeans_options.addWidget(self.k_means_label)
 
         self.column_label = QLabel("Variables:")
         self.column1 = None
         self.column2 = None
         self.vector = None
-        self.combobox1 = QComboBox()
-        self.combobox2 = QComboBox()
-        self.combobox1.addItems(self.columns)
-        self.combobox2.addItems(self.columns)
-        self.grid_k_layout.addWidget(self.column_label, 3, 1)
-        self.grid_k_layout.addWidget(self.combobox1, 4, 1)
-        self.grid_k_layout.addWidget(self.combobox2, 5, 1)
-        self.combobox1.activated.connect(self.set_kColumn1)
-        self.combobox2.activated.connect(self.set_kColumn2)
+        self.kmeans_var1 = QComboBox()
+        self.kmeans_var2 = QComboBox()
+        self.kmeans_var1.addItems(self.columns)
+        self.kmeans_var2.addItems(self.columns)
+        # self.kmeans_options.addItems(self.columns)
+        self.kmeans_options.addWidget(self.column_label)
+        self.kmeans_var1.activated.connect(self.set_kColumn1)
+        self.kmeans_var2.activated.connect(self.set_kColumn2)
+        self.kmeans_options.addWidget(self.kmeans_var1)
+        self.kmeans_options.addWidget(self.kmeans_var2)
 
         self.k_num = QLabel("Number of Clusters:")
         self.k = None
         self.textbox = QLineEdit()
         self.textbox.setValidator(QIntValidator())
-        self.grid_k_layout.addWidget(self.k_num, 6, 1)
-        self.grid_k_layout.addWidget(self.textbox, 7, 1)
+        self.kmeans_options.addWidget(self.k_num)
+        self.kmeans_options.addWidget(self.textbox)
 
         # Enter and Cancel buttons
         self.enter = QPushButton("Run K-Means", self)
-        self.grid_k_layout.addWidget(self.enter, 8, 0)
+        self.kmeans_options.addWidget(self.enter)
         self.enter.clicked.connect(self.check_setup)
         
-        self.filter_win.addLayout(self.grid_k_layout)
+        self.filter_win.addLayout(self.kmeans_options)
 
 
     # Sets the first column to perform K-Means on
     def set_kColumn1(self):
-        self.column1 = self.combobox1.currentText()
+        self.column1 = self.kmeans_var1.currentText()
     
     # Sets the second column to perform K-Means on
     def set_kColumn2(self):
-        self.column2 = self.combobox2.currentText()
+        self.column2 = self.kmeans_var2.currentText()
     
     # Sets the number of clusters.
     def set_clusters(self):
