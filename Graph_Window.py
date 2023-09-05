@@ -32,8 +32,8 @@ class graphWindow(QWidget):
         self.filter_win = QVBoxLayout()
         self.layout.addLayout(self.filter_win, 0, 1)
         # Adds variable window
-        self.var_win = QHBoxLayout()
-        self.layout.addLayout(self.var_win, 1, 0)
+        # self.var_win = QHBoxLayout()
+        # self.layout.addLayout(self.var_win, 1, 0)
         # Adds ML option corner
         self.ml_win = QGridLayout()
         self.layout.addLayout(self.ml_win, 1, 1)
@@ -42,14 +42,14 @@ class graphWindow(QWidget):
         # actionFile.addAction("New")
 
         # Set a title in the graph window as a placeholder
-        title = QLabel("Graph")
-        self.graph_win.addWidget(title)
+        # title = QLabel("Graph")
+        # self.graph_win.addWidget(title)
         # Set a title in the filters window as a placeholder
-        title = QLabel("Filters")
-        self.filter_win.addWidget(title)
+        # title = QLabel("Filters")
+        # self.filter_win.addWidget(title)
         # Set a title in the variables window as a placeholder
-        title = QLabel("Variables")
-        self.var_win.addWidget(title)
+        # title = QLabel("Variables")
+        # self.var_win.addWidget(title)
 
         # Sets all of the buttons for the linear regression algorithms
         linear_button = QPushButton("Linear Regression")
@@ -140,7 +140,7 @@ class graphWindow(QWidget):
         self.k_means_label.setFont(QFont('Times', 30))
         self.grid_k_layout.addWidget(self.k_means_label, 1, 1)
 
-        self.column_label = QLabel("Choose a element to perform K-Means on:")
+        self.column_label = QLabel("Variables:")
         self.column1 = None
         self.column2 = None
         self.vector = None
@@ -162,12 +162,9 @@ class graphWindow(QWidget):
         self.grid_k_layout.addWidget(self.textbox, 7, 1)
 
         # Enter and Cancel buttons
-        self.enter = QPushButton("Enter", self)
-        self.cancel = QPushButton("Cancel", self) 
+        self.enter = QPushButton("Run K-Means", self)
         self.grid_k_layout.addWidget(self.enter, 8, 0)
-        self.grid_k_layout.addWidget(self.cancel, 8, 2)
         self.enter.clicked.connect(self.check_setup)
-        self.cancel.clicked.connect(self.close)
         
         self.filter_win.addLayout(self.grid_k_layout)
 
