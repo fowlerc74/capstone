@@ -1,22 +1,30 @@
 from PyQt6.QtWidgets import (
-    QComboBox, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QWidget, QMainWindow)
+    QComboBox,
+    QPushButton,
+    QHBoxLayout,
+    QVBoxLayout,
+    QApplication,
+    QWidget,
+    QMainWindow,
+)
 import sys
 import os
 from Graph_Window import *
 
+
 # Main window, this will display the csv files to choose from and take the
-# user choice and open the graph window. 
+# user choice and open the graph window.
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # Window Title 
+        # Window Title
         self.setWindowTitle("PyQt Test")
 
         # File path to the csv files
         file_path = "Data/processed"
         # Place all in directory into array
         dir_list = os.listdir(file_path)
-        
+
         # Make combo box that selects csv file
         # TODO make option for choosing all
         self.combobox = QComboBox()
@@ -55,9 +63,9 @@ class MainWindow(QMainWindow):
     # the graph window class.
     def set_csv(self):
         self.csv = self.combobox.currentText()
-    
+
     # Opens the graph window and passes the chosen csv file into the
-    # new menu setup.    
+    # new menu setup.
     def open_window(self):
         # Checks if a value has been selected from the combobox
         if self.csv != None:
@@ -71,11 +79,12 @@ class MainWindow(QMainWindow):
                 # Closes graph window if already open and sets to None again.
                 self.w.close()
                 self.w = None
-    
+
     # If user hits cancel, then close main window.
     def canceled(self):
         sys.exit(app.exit())
-    
+
+
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
