@@ -1,9 +1,10 @@
 from pyspark.ml.feature import PCA, VectorAssembler
+import pyqtgraph as pg
 
 
 ####### Principal Component Analysis #######
 # PCA: Reduces dimensionality of large data sets
-def pca(sdf, num_comp, num_results):
+def pca(sdf, num_comp):
     """
     Runs Principal Component Analysis to reduce the dimensionality of the dataset.
 
@@ -31,7 +32,41 @@ def pca(sdf, num_comp, num_results):
     model = pca.fit(df)
     model.setOutputCol("output")
 
-    return model, model.transform(df).collect()[:num_results]
+    data = convert_data(model.transform(df).collect(), num_comp)
+
+    graph = setup_graph(data)
+    
+
+    return graph
+
+def convert_data(data, num_comp):
+    converted = []
+    for i in range(num_comp):
+        converted.append([])
+
+    for point in data:
+        for i in range(num_comp):
+            converted[i].append(point.output[i])
+
+    return converted
+
+
+def setup_graph(data):
+    # Makes a plot widget and setting the background white
+    plot = pg.PlotWidget(background="w")
+    # Creates a scatter plot and sets hovering to true
+    scatter = pg.ScatterPlotItem(hoverable=True)
+
+    # Describing what axis' represent in the graph
+    plot.setLabel("bottom", "Component 1")
+    plot.setLabel("left", "Component 2")
+    plot.setWindowTitle("Principal Component Analysis")
+
+    scatter.addPoints(data[0], data[1])
+    
+    plot.addItem(scatter)
+
+    return plot
 
 
 # Combine input comumns into one vector

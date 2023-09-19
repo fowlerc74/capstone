@@ -181,7 +181,6 @@ class graphWindow(QWidget):
     # When the runPCA button is pressed, creates the visualization
     def run_pca(self):
         # The number of modified values to output after PCA runs
-        NUM_OUTPUT_VALUES = 5  # temporary until PCA visualization gets built
         # Create the window for PCA
         self.pca_win = QVBoxLayout()
         # Set the number of components from the textbox
@@ -189,21 +188,24 @@ class graphWindow(QWidget):
         # If the number of components
         if self.num_comp != None and self.num_comp > 0:
             # Run PCA, get the model and data out
-            model, data = pca(self.sdf, self.num_comp, NUM_OUTPUT_VALUES)
-            # Add label for text output
-            pca_label = QLabel("Principal Component Analysis")
-            self.pca_win.addWidget(pca_label)
-            # Print out the explained variances
-            variances = QLabel("Explained Variances:" + str(model.explainedVariance))
-            self.pca_win.addWidget(variances)
-            # Print out label for datapoints
-            first_str = "First " + str(NUM_OUTPUT_VALUES) + " Data Points:"
-            first_values_label = QLabel(first_str)
-            self.pca_win.addWidget(first_values_label)
-            # Loop through output data and print
-            for out in data:
-                values = QLabel(str(out.output))
-                self.pca_win.addWidget(values)
+            self.pca_graph = pca(self.sdf, self.num_comp)
+
+            self.pca_win.addWidget(self.pca_graph)
+
+            # # Add label for text output
+            # pca_label = QLabel("Principal Component Analysis")
+            # self.pca_win.addWidget(pca_label)
+            # # Print out the explained variances
+            # variances = QLabel("Explained Variances:" + str(model.explainedVariance))
+            # self.pca_win.addWidget(variances)
+            # # Print out label for datapoints
+            # first_str = "First " + str(NUM_OUTPUT_VALUES) + " Data Points:"
+            # first_values_label = QLabel(first_str)
+            # self.pca_win.addWidget(first_values_label)
+            # # Loop through output data and print
+            # for out in data:
+            #     values = QLabel(str(out.output))
+            #     self.pca_win.addWidget(values)
 
             # Add to the graph window, default to bottom left
             self.graph_win.addLayout(self.pca_win, 1, 0)
