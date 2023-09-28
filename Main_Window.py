@@ -1,91 +1,274 @@
 from PyQt6.QtWidgets import (
     QComboBox,
     QPushButton,
-    QHBoxLayout,
+    QGridLayout,
     QVBoxLayout,
     QApplication,
     QWidget,
     QMainWindow,
 )
+from PyQt6.QtCore import Qt
+from k_means import *
+from linear import *
+from pca import *
+from clear_layout import *
+from start_spark import *
 import sys
 import os
-from Graph_Window import *
 
 
-# Main window, this will display the csv files to choose from and take the
-# user choice and open the graph window.
-class MainWindow(QMainWindow):
+class mainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # Window Title
-        self.setWindowTitle("PyQt Test")
+        self.setWindowTitle("Weather app")
+        self.resize(1400, 700)
 
-        # File path to the csv files
-        file_path = "Data/processed"
-        # Place all in directory into array
-        dir_list = os.listdir(file_path)
+        self.layout = QGridLayout()
 
-        # Make combo box that selects csv file
-        # TODO make option for choosing all
-        self.combobox = QComboBox()
-        self.combobox.addItems(dir_list)
-        # Enter and Cancel buttons
-        self.enter = QPushButton("Enter", self)
-        self.cancel = QPushButton("Cancel", self)
+        self.layout.setColumnStretch(0, 3)
+        self.layout.setColumnStretch(1, 1)
+        self.layout.setRowStretch(0, 5)
+        self.layout.setRowStretch(1, 4)
 
-        # No other window is open if None.
-        self.w = None
-        # Holds csv value picked from user.
-        self.csv = None
+        self.graph_win = QGridLayout()
+        self.layout.addLayout(self.graph_win, 0, 0)
 
-        # HBox layout for the buttons on the Main window.
-        h_layout = QHBoxLayout()
-        h_layout.addWidget(self.enter)
-        h_layout.addWidget(self.cancel)
-        # VBox layout for the overall layout of the window.
-        layout = QVBoxLayout()
-        layout.addWidget(self.combobox)
-        layout.addLayout(h_layout)
-        # container holds the entire layout and places it in the center.
+        self.filter_win = QVBoxLayout()
+        self.layout.addLayout(self.filter_win, 0, 1)
+
+        # self.var_win = QHBoxLayout()
+        # self.layout.addLayout(self.var_win, 1, 0)
+
+        self.ml_win = QGridLayout()
+        self.layout.addLayout(self.ml_win, 1, 1)
+
+        # Sets all of the buttons for the ML algorithms
+        linear_button = QPushButton("Linear Regression")
+        linear_button.clicked.connect(self.linear_win)
+
+        kmeans_button = QPushButton("K-Means")
+        kmeans_button.clicked.connect(self.kmeans_window)
+
+        gaussian_button = QPushButton("Gaussian Mixture")
+        gaussian_button.clicked.connect(self.gaussian_window)
+
+        pca_button = QPushButton("Principal Component Analysis")
+        pca_button.clicked.connect(self.pca_window)
+
+        self.graph_active = None
+        self.filter_active = None
+        self.active_fil_layout = None
+        # self.var_active = None
+
+        # Adds the buttons to the ML window
+        self.ml_win.addWidget(linear_button, 0, 0)
+        self.ml_win.addWidget(kmeans_button, 0, 1)
+        self.ml_win.addWidget(gaussian_button, 1, 0)
+        self.ml_win.addWidget(pca_button, 1, 1)
+
         container = QWidget()
-        container.setLayout(layout)
+        container.setLayout(self.layout)
         self.setCentralWidget(container)
 
-        # Once option is selected, the option is saved to self.csv.
-        self.combobox.activated.connect(self.set_csv)
-        # If option is picked in combo box, open new window.
-        self.enter.clicked.connect(self.open_window)
-        # Closes the Main Window.
-        self.cancel.clicked.connect(self.canceled)
+        self.csv = None
+
+    # A widget that selects what year the user wants to see.
+    def select_year(self):
+        file_path = "Data/processed"
+        self.dir_list = os.listdir(file_path)
+
+        self.year_label = QLabel("Select Year:")
+        self.filter_win.addWidget(self.year_label)
+
+        self.year_select = QComboBox()
+        self.year_select.addItems(self.dir_list)
+        self.year_select.activated.connect(self.set_csv)
+        self.filter_win.addWidget(self.year_select)
+        self.filter_active = True
 
     # When an option is selected by the user in the combobox
     # it is then passed to self.csv that will be used again in
     # the graph window class.
     def set_csv(self):
-        self.csv = self.combobox.currentText()
+        self.csv = self.year_select.currentText()
 
-    # Opens the graph window and passes the chosen csv file into the
-    # new menu setup.
-    def open_window(self):
-        # Checks if a value has been selected from the combobox
+    # Has the user select the year and calls linear to
+    # perform linear regression on daily precipitation with the chosen year
+    def linear_win(self):
+        if self.graph_active == True:
+            clear_graph_win(self.graph_win)
+        if self.filter_active == True:
+            clear_fil_win(self.filter_win, self.active_fil_layout)
+        self.select_year()
+        self.linear_enter = linear_enter()
+        self.linear_cancel = linear_cancel()
+        self.filter_win.addWidget(self.linear_enter)
+        self.filter_win.addWidget(self.linear_cancel)
+
+        self.linear_enter.clicked.connect(self.linear_run)
+        self.linear_cancel.clicked.connect(self.canceled)
+
+    # Takes the year and runs spark and displays the linear regression graph.
+    def linear_run(self):
         if self.csv != None:
-            # If a graph window is not already open
-            if self.w is None:
-                # Pass csv file into graph window
-                # display graph window
-                self.w = graphWindow(self.csv)
-                self.w.show()
-            else:
-                # Closes graph window if already open and sets to None again.
-                self.w.close()
-                self.w = None
+            sdf = setup(self.csv)
+            self.linear_graph = linear_reg(sdf)
+            self.graph_win.addWidget(self.linear_graph, 0, 0)
+            self.graph_active = True
 
-    # If user hits cancel, then close main window.
+    #  Calls k_means to display the k-means graph.
+    def kmeans_window(self):
+        if self.graph_active == True:
+            print("Here")
+            clear_graph_win(self.graph_win)
+        if self.filter_active == True:
+            print("Here2")
+            clear_fil_win(self.filter_win, self.active_fil_layout)
+
+        self.kmeans_options = QVBoxLayout()
+        k_means_label = QLabel("K-Means Options")
+        k_means_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        k_means_label.setFont(QFont("Times", 30))
+        self.kmeans_options.addWidget(k_means_label)
+
+        self.column_label = QLabel("Variables:")
+        k_col = k_columns()
+        self.column1 = None
+        self.column2 = None
+        self.column3 = None
+        self.kmeans_var1 = QComboBox()
+        self.kmeans_var2 = QComboBox()
+        self.kmeans_var3 = QComboBox()
+        self.kmeans_var1.addItems(k_col)
+        self.kmeans_var2.addItems(k_col)
+        self.kmeans_var3.addItems(k_col)
+        self.kmeans_options.addWidget(self.column_label)
+        self.kmeans_var1.activated.connect(self.set_kColumn1)
+        self.kmeans_var2.activated.connect(self.set_kColumn2)
+        self.kmeans_var3.activated.connect(self.set_kColumn3)
+        self.kmeans_options.addWidget(self.kmeans_var1)
+        self.kmeans_options.addWidget(self.kmeans_var2)
+        self.kmeans_options.addWidget(self.kmeans_var3)
+
+        k_num = QLabel("Number of Clusters: ")
+        self.k = None
+        self.k_textbox = QLineEdit()
+        self.k_textbox.setValidator(QIntValidator())
+        self.kmeans_options.addWidget(k_num)
+        self.kmeans_options.addWidget(self.k_textbox)
+
+        self.enter = QPushButton("Run K-Means", self)
+        self.kmeans_options.addWidget(self.enter)
+        self.enter.clicked.connect(self.k_check)
+
+        self.select_year()
+        self.filter_win.addLayout(self.kmeans_options)
+        self.active_fil_layout = self.kmeans_options
+        self.filter_active = True
+
+    # Set the number of clusters for K-Means
+    def set_clusters(self):
+        self.k = int(self.k_textbox.text())
+
+    # Sets the first column to perform K-Means on
+    def set_kColumn1(self):
+        self.column1 = self.kmeans_var1.currentText()
+
+    # Sets the second column to perform K-Means on
+    def set_kColumn2(self):
+        self.column2 = self.kmeans_var2.currentText()
+
+    # Sets the third column to perform K-Means on
+    def set_kColumn3(self):
+        self.column3 = self.kmeans_var3.currentText()
+
+    # Does a check to make sure the number of clusters have been selected
+    # also is where the kmeans graph and silhouette graph is added to the
+    # graph window.
+    def k_check(self):
+        self.set_clusters()
+        if self.k != None and self.csv != None:
+            sdf = setup(self.csv)
+            self.kgraph, self.sil_graph = kmeans(
+                sdf, self.k, self.column1, self.column2, self.column3
+            )
+            self.graph_win.addWidget(self.kgraph, 0, 0)
+            self.graph_win.addWidget(self.sil_graph, 0, 1)
+            self.graph_active = True
+
+    def gaussian_window(self):
+        pass
+
+    # Calls pca and creates a visualization.
+    def pca_window(self):
+        if self.graph_active == True:
+            print("Here")
+            clear_graph_win(self.graph_win)
+        if self.filter_active == True:
+            print("Here2")
+            clear_fil_win(self.filter_win, self.active_fil_layout)
+        # Create the options box
+        self.pca_options = QVBoxLayout()
+        # Create the label for the number of components
+        num_comp_label = QLabel("Number of Components:")
+        self.pca_options.addWidget(num_comp_label)
+        # Create the textbox for the number of components, and make it only take ints
+        self.pca_textbox = QLineEdit()
+        self.pca_textbox.setValidator(QIntValidator())
+        self.pca_options.addWidget(self.pca_textbox)
+        # Create the button to run PCA
+        run_PCA = QPushButton("Run PCA", self)
+        run_PCA.clicked.connect(self.run_pca)
+        self.pca_options.addWidget(run_PCA)
+        # Add the PCA options to the filter window
+        self.filter_win.addLayout(self.pca_options)
+        # Doesn't run PCA until runPCA button pressed
+        self.filter_active = True
+        self.active_fil_layout = self.pca_options
+
+    # When the runPCA button is pressed, creates the visualization
+    def run_pca(self):
+        # The number of modified values to output after PCA runs
+        NUM_OUTPUT_VALUES = 5  # temporary until PCA visualization gets built
+        # Create the window for PCA
+        self.pca_win = QVBoxLayout()
+        # Set the number of components from the textbox
+        self.num_comp = int(self.pca_textbox.text())
+        # If the number of components
+        if self.num_comp != None and self.num_comp > 0:
+            # Run PCA, get the model and data out
+            model, data = pca(self.sdf, self.num_comp, NUM_OUTPUT_VALUES)
+            # Add label for text output
+            pca_label = QLabel("Principal Component Analysis")
+            self.pca_win.addWidget(pca_label)
+            # Print out the explained variances
+            variances = QLabel("Explained Variances:" + str(model.explainedVariance))
+            self.pca_win.addWidget(variances)
+            # Print out label for datapoints
+            first_str = "First " + str(NUM_OUTPUT_VALUES) + " Data Points:"
+            first_values_label = QLabel(first_str)
+            self.pca_win.addWidget(first_values_label)
+            # Loop through output data and print
+            for out in data:
+                values = QLabel(str(out.output))
+                self.pca_win.addWidget(values)
+
+            # Add to the graph window, default to bottom left
+            self.graph_win.addLayout(self.pca_win, 1, 0)
+            self.graph_active = True
+
+    # If a cancel button is present in the filter window,
+    # it should clear the window.
     def canceled(self):
-        sys.exit(app.exit())
+        if self.graph_active == True:
+            print("Here")
+            clear_graph_win(self.graph_win)
+        if self.filter_active == True:
+            print("Here2")
+            clear_fil_win(self.filter_win, self.active_fil_layout)
 
 
 app = QApplication(sys.argv)
-window = MainWindow()
+window = mainWindow()
 window.show()
 sys.exit(app.exec())
