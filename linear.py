@@ -1,7 +1,20 @@
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import LinearRegression
+from PyQt6.QtWidgets import QPushButton
 import numpy as np
 import pyqtgraph as pg
+
+
+# Makes a Enter button when the user selects which year to use.
+def linear_enter():
+    enter = QPushButton("Enter")
+    return enter
+
+
+# Makes a cancel button that clears the filter section.
+def linear_cancel():
+    cancel = QPushButton("Cancel")
+    return cancel
 
 
 # Runs Linear Regression and returns the line graph of the predicted values
