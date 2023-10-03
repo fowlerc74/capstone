@@ -90,7 +90,6 @@ class mainWindow(QMainWindow):
     def select_year(self):
         years = ["2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", 
                  "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022"]
-        print(years)
 
         file_path = "Data/processed"
         self.dir_list = os.listdir(file_path)
@@ -140,7 +139,6 @@ class mainWindow(QMainWindow):
     # the graph window class.
     def set_csv(self):
         self.csv = self.year_select.currentText()
-        print(self.csv)
 
     # Has the user select the year and calls linear to
     # perform linear regression on daily precipitation with the chosen year
@@ -168,10 +166,8 @@ class mainWindow(QMainWindow):
     #  Calls k_means to display the k-means graph.
     def kmeans_window(self):
         if self.graph_active == True:
-            print("Here")
             clear_graph_win(self.graph_win)
         if self.filter_active == True:
-            print("Here2")
             clear_fil_win(self.filter_win, self.active_fil_layout)
 
         self.kmeans_options = QVBoxLayout()
@@ -250,10 +246,8 @@ class mainWindow(QMainWindow):
     # Calls pca and creates a visualization.
     def pca_window(self):
         if self.graph_active == True:
-            print("Here")
             clear_graph_win(self.graph_win)
         if self.filter_active == True:
-            print("Here2")
             clear_fil_win(self.filter_win, self.active_fil_layout)
         # Create the options box
         self.pca_options = QVBoxLayout()
@@ -309,10 +303,8 @@ class mainWindow(QMainWindow):
     # it should clear the window.
     def canceled(self):
         if self.graph_active == True:
-            print("Here")
             clear_graph_win(self.graph_win)
         if self.filter_active == True:
-            print("Here2")
             clear_fil_win(self.filter_win, self.active_fil_layout)
 
 
