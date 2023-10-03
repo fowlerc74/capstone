@@ -24,6 +24,7 @@ class mainWindow(QMainWindow):
         self.resize(1400, 700)
 
         self.layout = QGridLayout()
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignRight)
 
         self.layout.setColumnStretch(0, 3)
         self.layout.setColumnStretch(1, 1)
@@ -33,8 +34,19 @@ class mainWindow(QMainWindow):
         self.graph_win = QGridLayout()
         self.layout.addLayout(self.graph_win, 0, 0)
 
+        self.options_widget = QWidget()
+        self.options_layout = QVBoxLayout()
+        self.options_widget.setLayout(self.options_layout)
+        self.options_widget.setMaximumWidth(350) # TODO make this a var
+
+        
+        self.year_win = self.select_year()
+        self.options_layout.addWidget(self.year_win)
+
         self.filter_win = QVBoxLayout()
-        self.layout.addLayout(self.filter_win, 0, 1)
+        self.options_layout.addLayout(self.filter_win)
+        
+        self.layout.addWidget(self.options_widget, 0, 1)
 
         # self.var_win = QHBoxLayout()
         # self.layout.addLayout(self.var_win, 1, 0)
@@ -70,27 +82,65 @@ class mainWindow(QMainWindow):
         container.setLayout(self.layout)
         self.setCentralWidget(container)
 
-        self.csv = None
+        self.select_year()
+
+        self.csv = "2006.csv"
 
     # A widget that selects what year the user wants to see.
     def select_year(self):
+        years = ["2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", 
+                 "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022"]
+        print(years)
+
         file_path = "Data/processed"
         self.dir_list = os.listdir(file_path)
 
-        self.year_label = QLabel("Select Year:")
-        self.filter_win.addWidget(self.year_label)
+        self.year_widget = QWidget()
+        self.year_layout = QVBoxLayout()
+        self.year_widget.setLayout(self.year_layout)
+
+        self.year_label = QLabel("Select Year: TEMP")
+        self.year_layout.addWidget(self.year_label)
 
         self.year_select = QComboBox()
         self.year_select.addItems(self.dir_list)
         self.year_select.activated.connect(self.set_csv)
-        self.filter_win.addWidget(self.year_select)
-        self.filter_active = True
+        self.year_layout.addWidget(self.year_select)
+        self.filter_active = True        
+
+        self.min_year_label = QLabel("Starting Year:")
+        self.year_layout.addWidget(self.min_year_label)
+        self.min_year_select = QComboBox()
+        self.min_year_select.addItems(years)
+        self.min_year_select.activated.connect(self.set_min_year)
+        self.year_layout.addWidget(self.min_year_select)
+
+        self.max_year_label = QLabel("Ending Year:")
+        self.year_layout.addWidget(self.max_year_label)
+        self.max_year_select = QComboBox()
+        self.max_year_select.addItems(years)
+        self.max_year_select.activated.connect(self.set_max_year)
+        self.year_layout.addWidget(self.max_year_select)
+
+        self.year_widget.setMaximumHeight(150)
+        self.year_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        return self.year_widget
+    
+    # When a starting year is selected, the variable min_year is updated
+    def set_min_year(self):
+        self.min_year = self.min_year_select.currentText()
+
+    # When an ending year is selected, the variable max_year is updated
+    def set_max_year(self):
+        self.max_year = self.max_year_select.currentText()
 
     # When an option is selected by the user in the combobox
     # it is then passed to self.csv that will be used again in
     # the graph window class.
     def set_csv(self):
         self.csv = self.year_select.currentText()
+        print(self.csv)
 
     # Has the user select the year and calls linear to
     # perform linear regression on daily precipitation with the chosen year
@@ -99,7 +149,6 @@ class mainWindow(QMainWindow):
             clear_graph_win(self.graph_win)
         if self.filter_active == True:
             clear_fil_win(self.filter_win, self.active_fil_layout)
-        self.select_year()
         self.linear_enter = linear_enter()
         self.linear_cancel = linear_cancel()
         self.filter_win.addWidget(self.linear_enter)
@@ -161,7 +210,6 @@ class mainWindow(QMainWindow):
         self.kmeans_options.addWidget(self.enter)
         self.enter.clicked.connect(self.k_check)
 
-        self.select_year()
         self.filter_win.addLayout(self.kmeans_options)
         self.active_fil_layout = self.kmeans_options
         self.filter_active = True

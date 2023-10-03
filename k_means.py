@@ -39,6 +39,7 @@ def kmeans(sdf, k, column1, column2, column3):
     graph, sil_graph = setup_graph(
         output, kmeans_algo.getK(), sil_output, column1, column2, column3
     )
+
     return graph, sil_graph
 
 
@@ -104,6 +105,10 @@ def k_columns():
     ]
     return columns
 
+# When points are hovered over, print
+def on_hover(evt, points):
+        if points.size > 0:
+            print(points[0].data())
 
 # Creates the scatter plot from based on the K-Means results and returns the graph.
 def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
@@ -124,6 +129,7 @@ def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
     plot = pg.PlotWidget(background="w")
     # Creates a scatter plot and sets hovering to true
     scatter = pg.ScatterPlotItem(hoverable=True)
+    scatter.sigHovered.connect(on_hover)
 
     # Describing what axis' represent in the graph
     plot.setLabel("bottom", str(column1))
