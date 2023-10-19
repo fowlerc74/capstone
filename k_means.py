@@ -30,6 +30,8 @@ def kmeans(sdf, k, column1, column2, column3):
 
     # Fits the new DataFrame that has the features column
     kmeans_fit = kmeans_algo.fit(new_df)
+    centers = kmeans_fit.clusterCenters()
+    legend_box = legend(column1, column2, column3, centers)
     # The output after K-Means has run, should contain
     # a prediction column that will be for the feature column
     output = kmeans_fit.transform(new_df)
@@ -40,7 +42,7 @@ def kmeans(sdf, k, column1, column2, column3):
         output, kmeans_algo.getK(), sil_output, column1, column2, column3
     )
 
-    return graph, sil_graph
+    return graph, sil_graph, legend_box
 
 
 # Silhouette score measures how close each point in one cluster is to points in the
@@ -105,10 +107,45 @@ def k_columns():
     ]
     return columns
 
+
 # When points are hovered over, print
 def on_hover(evt, points):
-        if points.size > 0:
-            print(points[0].data())
+    if points.size > 0:
+        print(points[0].data())
+
+
+def legend(column1, column2, column3, centers):
+    legend_box = QVBoxLayout()
+    cluster_center_box = QVBoxLayout()
+    overall_layout = QHBoxLayout()
+
+    legend_title = QLabel("Symbol Meaning:")
+    legend_box.addWidget(legend_title)
+
+    col1 = str(column1) + " = x"
+    col2 = str(column2) + " = o"
+    col1_label = QLabel(col1)
+    col2_label = QLabel(col2)
+    legend_box.addWidget(col1_label)
+    legend_box.addWidget(col2_label)
+    if column3 != "None":
+        col3 = str(column3) + " = *"
+        col3_label = QLabel(col3)
+        legend_box.addWidget(col3_label)
+
+    center_title = QLabel("Cluster centers:")
+    cluster_center_box.addWidget(center_title)
+
+    for center in centers:
+        string_center = str(center)
+        center_label = QLabel(string_center)
+        cluster_center_box.addWidget(center_label)
+
+    overall_layout.addLayout(legend_box)
+    overall_layout.addLayout(cluster_center_box)
+
+    return overall_layout
+
 
 # Creates the scatter plot from based on the K-Means results and returns the graph.
 def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
@@ -132,8 +169,8 @@ def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
     scatter.sigHovered.connect(on_hover)
 
     # Describing what axis' represent in the graph
-    plot.setLabel("bottom", str(column1))
-    plot.setLabel("left", str(column2))
+    plot.setLabel("bottom", "Days")
+    plot.setLabel("left", str(column1))
     plot.setWindowTitle("K-Means")
 
     # Set up the silhouette graph
@@ -144,6 +181,15 @@ def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
     sil_graph.setLabel("bottom", "# of Clusters")
     sil_graph.plot(range(2, 11), sil_score, pen=pg.mkPen("b", width=3))
 
+    counter = 0
+
+    date_arr = []
+    hold_daily = dfoutput.select("DATE").collect()
+
+    while len(hold_daily) != counter:
+        counter += 1
+        date_arr.append(counter)
+
     hold = []
 
     if column3 != "None":
@@ -152,14 +198,14 @@ def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
         plot.setLabel("right", str(column3))
         for i in range(n_clusters):
             scatter.setBrush(QColor(pg.intColor(i, n_clusters)))
-            scatter.setPen(QColor(pg.intColor(i, n_clusters)))
-            for j, k in zip(col1_arr[pred_arr == i], col3_arr[pred_arr == i]):
+            # scatter.setPen(QColor(pg.intColor(i, n_clusters)))
+            for j, k in zip(date_arr, col3_arr[pred_arr == i]):
                 print("Col1: ", j, ", Col3: ", k)
                 hold.append(
                     {
-                        "pos": (j, k),
+                        "pos": (date_arr[j], k),
                         "brush": QColor(pg.intColor(i, n_clusters)),
-                        "symbol": "x",
+                        "symbol": "star",
                     }
                 )
                 scatter.addPoints(hold)
@@ -169,17 +215,25 @@ def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
     for i in range(n_clusters):
         print("Cluster: ", i)
         scatter.setBrush(QColor(pg.intColor(i, n_clusters)))
-        scatter.setPen(QColor(pg.intColor(i, n_clusters)))
-        for j, k in zip(col1_arr[pred_arr == i], col2_arr[pred_arr == i]):
+        # scatter.setPen(QColor(pg.intColor(i, n_clusters)))
+        for j, k in zip(date_arr, col2_arr[pred_arr == i]):
             print("Col1: ", j, ", Col2: ", k)
             hold.append(
                 {
-                    "pos": (j, k),
+                    "pos": (date_arr[j], k),
                     "brush": QColor(pg.intColor(i, n_clusters)),
                     "symbol": "o",
                 }
             )
-            scatter.addPoints(hold)
+        for datej, col1k in zip(date_arr, col1_arr[pred_arr == i]):
+            hold.append(
+                {
+                    "pos": (date_arr[datej], col1k),
+                    "brush": QColor(pg.intColor(i, n_clusters)),
+                    "symbol": "x",
+                }
+            )
+        scatter.addPoints(hold)
 
     # Adds the scatter plot to the plot widget
     plot.addItem(scatter)
