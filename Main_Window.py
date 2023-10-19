@@ -37,19 +37,18 @@ class mainWindow(QMainWindow):
         self.options_widget = QWidget()
         self.options_layout = QVBoxLayout()
         self.options_widget.setLayout(self.options_layout)
-        self.options_widget.setMaximumWidth(350) # TODO make this a var
+        self.options_widget.setMaximumWidth(350)  # TODO make this a var
 
-        
         self.year_win = self.select_year()
         self.options_layout.addWidget(self.year_win)
 
         self.filter_win = QVBoxLayout()
         self.options_layout.addLayout(self.filter_win)
-        
+
         self.layout.addWidget(self.options_widget, 0, 1)
 
-        # self.var_win = QHBoxLayout()
-        # self.layout.addLayout(self.var_win, 1, 0)
+        self.var_win = QHBoxLayout()
+        self.layout.addLayout(self.var_win, 1, 0)
 
         self.ml_win = QGridLayout()
         self.layout.addLayout(self.ml_win, 1, 1)
@@ -70,7 +69,7 @@ class mainWindow(QMainWindow):
         self.graph_active = None
         self.filter_active = None
         self.active_fil_layout = None
-        # self.var_active = None
+        self.var_active = None
 
         # Adds the buttons to the ML window
         self.ml_win.addWidget(linear_button, 0, 0)
@@ -88,8 +87,25 @@ class mainWindow(QMainWindow):
 
     # A widget that selects what year the user wants to see.
     def select_year(self):
-        years = ["2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", 
-                 "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022"]
+        years = [
+            "2006",
+            "2007",
+            "2008",
+            "2009",
+            "2010",
+            "2011",
+            "2012",
+            "2013",
+            "2014",
+            "2015",
+            "2016",
+            "2017",
+            "2018",
+            "2019",
+            "2020",
+            "2021",
+            "2022",
+        ]
 
         file_path = "Data/processed"
         self.dir_list = os.listdir(file_path)
@@ -105,7 +121,7 @@ class mainWindow(QMainWindow):
         self.year_select.addItems(self.dir_list)
         self.year_select.activated.connect(self.set_csv)
         self.year_layout.addWidget(self.year_select)
-        self.filter_active = True        
+        self.filter_active = True
 
         self.min_year_label = QLabel("Starting Year:")
         self.year_layout.addWidget(self.min_year_label)
@@ -125,7 +141,7 @@ class mainWindow(QMainWindow):
         self.year_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         return self.year_widget
-    
+
     # When a starting year is selected, the variable min_year is updated
     def set_min_year(self):
         self.min_year = self.min_year_select.currentText()
@@ -233,12 +249,14 @@ class mainWindow(QMainWindow):
         self.set_clusters()
         if self.k != None and self.csv != None:
             sdf = setup(self.csv)
-            self.kgraph, self.sil_graph = kmeans(
+            self.kgraph, self.sil_graph, self.legend = kmeans(
                 sdf, self.k, self.column1, self.column2, self.column3
             )
+            self.var_win.addLayout(self.legend)
             self.graph_win.addWidget(self.kgraph, 0, 0)
             self.graph_win.addWidget(self.sil_graph, 0, 1)
             self.graph_active = True
+            self.var_active = True
 
     def gaussian_window(self):
         pass
