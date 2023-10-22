@@ -31,7 +31,7 @@ def kmeans(sdf, k, column1, column2, column3):
     # Fits the new DataFrame that has the features column
     kmeans_fit = kmeans_algo.fit(new_df)
     centers = kmeans_fit.clusterCenters()
-    legend_box = legend(column1, column2, column3, centers)
+    legend_box = legend(column1, column2, column3, centers, k)
     # The output after K-Means has run, should contain
     # a prediction column that will be for the feature column
     output = kmeans_fit.transform(new_df)
@@ -114,7 +114,7 @@ def on_hover(evt, points):
         print(points[0].data())
 
 
-def legend(column1, column2, column3, centers):
+def legend(column1, column2, column3, centers, n_clusters):
     legend_box = QVBoxLayout()
     cluster_center_box = QVBoxLayout()
     overall_layout = QHBoxLayout()
@@ -135,11 +135,16 @@ def legend(column1, column2, column3, centers):
 
     center_title = QLabel("Cluster centers:")
     cluster_center_box.addWidget(center_title)
-
+    i = 0
     for center in centers:
         string_center = str(center)
         center_label = QLabel(string_center)
+        center_label.setAutoFillBackground(True)
+        color = QColor(pg.intColor(i, n_clusters))
+        set_color = "background-color : " + color.name()
+        center_label.setStyleSheet(set_color)
         cluster_center_box.addWidget(center_label)
+        i += 1
 
     overall_layout.addLayout(legend_box)
     overall_layout.addLayout(cluster_center_box)
