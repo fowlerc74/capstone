@@ -13,12 +13,16 @@ def clear_graph_win(graph_win):
 
 
 # Clears the variable window
-def clear_var_win(var_win):
+def clear_var_win(var_win, active):
     print(var_win.count())
-    while var_win.count():
-        child = var_win.takeAt(0)
-        if child.widget():
-            child.widget().deleteLater()
+    print("Clearing this window!!")
+    for i in range(var_win.count()):
+        layout_item = var_win.itemAt(i)
+        if layout_item.layout() == active:
+            delete_widgets(layout_item.layout())
+            var_win.removeItem(layout_item)
+            break
+
     print("Cleared variable window")
 
 
@@ -30,7 +34,7 @@ def clear_fil_win(fil_win, active):
         layout_item = fil_win.itemAt(i)
         if layout_item.layout() == active:
             print("HERE 4")
-            deleteItemsOfLayout(layout_item.layout())
+            delete_widgets(layout_item.layout())
             fil_win.removeItem(layout_item)
             break
 
@@ -38,7 +42,7 @@ def clear_fil_win(fil_win, active):
 
 
 # Alternate way of deleting all items inside of a layout
-def deleteItemsOfLayout(layout):
+def delete_widgets(layout):
     if layout is not None:
         while layout.count():
             item = layout.takeAt(0)
@@ -46,4 +50,4 @@ def deleteItemsOfLayout(layout):
             if widget is not None:
                 widget.setParent(None)
             else:
-                deleteItemsOfLayout(item.layout())
+                delete_widgets(item.layout())
