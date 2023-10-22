@@ -70,6 +70,7 @@ class mainWindow(QMainWindow):
         self.filter_active = None
         self.active_fil_layout = None
         self.var_active = None
+        self.active_var_layout = None
 
         # Adds the buttons to the ML window
         self.ml_win.addWidget(linear_button, 0, 0)
@@ -163,6 +164,8 @@ class mainWindow(QMainWindow):
             clear_graph_win(self.graph_win)
         if self.filter_active == True:
             clear_fil_win(self.filter_win, self.active_fil_layout)
+        if self.var_active == True:
+            clear_var_win(self.var_win, self.active_var_layout)
         self.linear_enter = linear_enter()
         self.linear_cancel = linear_cancel()
         self.filter_win.addWidget(self.linear_enter)
@@ -181,10 +184,14 @@ class mainWindow(QMainWindow):
 
     #  Calls k_means to display the k-means graph.
     def kmeans_window(self):
+        print("Var result = ", self.var_active)
         if self.graph_active == True:
             clear_graph_win(self.graph_win)
         if self.filter_active == True:
             clear_fil_win(self.filter_win, self.active_fil_layout)
+        if self.var_active == True:
+            print("Should clear")
+            clear_var_win(self.var_win, self.active_var_layout)
 
         self.kmeans_options = QVBoxLayout()
         k_means_label = QLabel("K-Means Options")
@@ -246,6 +253,10 @@ class mainWindow(QMainWindow):
     # also is where the kmeans graph and silhouette graph is added to the
     # graph window.
     def k_check(self):
+        if self.graph_active == True:
+            clear_graph_win(self.graph_win)
+        if self.var_active == True:
+            clear_var_win(self.var_win, self.active_var_layout)
         self.set_clusters()
         if self.k != None and self.csv != None:
             sdf = setup(self.csv)
@@ -255,6 +266,7 @@ class mainWindow(QMainWindow):
             self.var_win.addLayout(self.legend)
             self.graph_win.addWidget(self.kgraph, 0, 0)
             self.graph_win.addWidget(self.sil_graph, 0, 1)
+            self.active_var_layout = self.legend
             self.graph_active = True
             self.var_active = True
 
@@ -267,6 +279,8 @@ class mainWindow(QMainWindow):
             clear_graph_win(self.graph_win)
         if self.filter_active == True:
             clear_fil_win(self.filter_win, self.active_fil_layout)
+        if self.var_active == True:
+            clear_var_win(self.var_win, self.active_var_layout)
         # Create the options box
         self.pca_options = QVBoxLayout()
         # Create the label for the number of components
@@ -294,10 +308,14 @@ class mainWindow(QMainWindow):
         self.pca_win = QVBoxLayout()
         # Set the number of components from the textbox
         self.num_comp = int(self.pca_textbox.text())
+
+        if self.csv != None:
+            sdf = setup(self.csv)
+
         # If the number of components
         if self.num_comp != None and self.num_comp > 0:
             # Run PCA, get the model and data out
-            model, data = pca(self.sdf, self.num_comp, NUM_OUTPUT_VALUES)
+            model, data = pca(sdf, self.num_comp, NUM_OUTPUT_VALUES)
             # Add label for text output
             pca_label = QLabel("Principal Component Analysis")
             self.pca_win.addWidget(pca_label)
