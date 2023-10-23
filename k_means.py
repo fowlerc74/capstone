@@ -15,10 +15,6 @@ def kmeans(sdf, k, column1, column2, column3):
     # Makes a vector that contains the features that K-Means will
     # use to predict which cluster that they should belong to
 
-    print("RIGHT HERE")
-    print(column1)
-    print(column2)
-    print(column3)
     feat_assembler = k_vector_feature_assembler(column1, column2, column3)
 
     # A new DataFrame that has the features vector as a new column.
@@ -70,15 +66,20 @@ def k_vector_feature_assembler(column1, column2, column3):
     print(column1)
     print(column2)
     print(column3)
-    if column3 == "None":
+    if column3 == "None" and column2 == "None":
+        print("Here 1: ", column2)
         vector = VectorAssembler(
-            inputCols=[column1, column2],
+            inputCols=[column1],
             outputCol="features",
         )
+    if column2 != "None":
+        print("Here 2: ", column2)
+        vector = VectorAssembler(inputCols=[column1, column2], outputCol="features")
+
     # if column2 == "None" and column3 == "None":
     #     # Display a error message, must have at least 2
     #     pass
-    else:
+    if column1 != "None" and column2 != "None" and column3 != "None":
         vector = VectorAssembler(
             inputCols=[column1, column2, column3],
             outputCol="features",
@@ -111,9 +112,12 @@ def k_columns():
 # When points are hovered over, print
 def on_hover(evt, points):
     if points.size > 0:
-        print(points[0].data())
+        print(points[0])
 
 
+# Makes the the variable section hold additional information.
+# Currently displays what the symbols are and displays the cluster centers
+# and the color of what center is which on the graph.
 def legend(column1, column2, column3, centers, n_clusters):
     legend_box = QVBoxLayout()
     cluster_center_box = QVBoxLayout()
@@ -122,16 +126,18 @@ def legend(column1, column2, column3, centers, n_clusters):
     legend_title = QLabel("Symbol Meaning:")
     legend_box.addWidget(legend_title)
 
-    col1 = str(column1) + " = x"
-    col2 = str(column2) + " = o"
+    col1 = str(column1) + " = o"
     col1_label = QLabel(col1)
-    col2_label = QLabel(col2)
     legend_box.addWidget(col1_label)
-    legend_box.addWidget(col2_label)
     if column3 != "None":
         col3 = str(column3) + " = *"
         col3_label = QLabel(col3)
         legend_box.addWidget(col3_label)
+
+    if column2 != "None":
+        col2 = str(column2) + " = x"
+        col2_label = QLabel(col2)
+        legend_box.addWidget(col2_label)
 
     center_title = QLabel("Cluster centers:")
     cluster_center_box.addWidget(center_title)
@@ -158,12 +164,9 @@ def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
     pred = dfoutput.select("prediction").collect()
     # Selecting the first chosen column by the user
     col1 = dfoutput.select(column1).collect()
-    # Selecting the second chosen column by the user
-    col2 = dfoutput.select(column2).collect()
 
     # Turns the selected columns into numpy arrays
     col1_arr = np.array(col1).reshape(-1)
-    col2_arr = np.array(col2).reshape(-1)
     pred_arr = np.array(pred).reshape(-1)
     sil_score = np.array(sil_output)
 
@@ -175,7 +178,6 @@ def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
 
     # Describing what axis' represent in the graph
     plot.setLabel("bottom", "Days")
-    plot.setLabel("left", str(column1))
     plot.setWindowTitle("K-Means")
 
     # Set up the silhouette graph
@@ -195,17 +197,16 @@ def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
         counter += 1
         date_arr.append(counter)
 
+    # Making a hold array that will hold the position for each point
+    # and color of each point and adds the points to the scatter plot
     hold = []
 
     if column3 != "None":
         col3 = dfoutput.select(column3).collect()
         col3_arr = np.array(col3).reshape(-1)
-        plot.setLabel("right", str(column3))
         for i in range(n_clusters):
             scatter.setBrush(QColor(pg.intColor(i, n_clusters)))
-            # scatter.setPen(QColor(pg.intColor(i, n_clusters)))
             for j, k in zip(date_arr, col3_arr[pred_arr == i]):
-                print("Col1: ", j, ", Col3: ", k)
                 hold.append(
                     {
                         "pos": (date_arr[j], k),
@@ -215,14 +216,24 @@ def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
                 )
                 scatter.addPoints(hold)
 
-    # Making a hold array that will hold the position for each point
-    # and color of each point and adds the points to the scatter plot
+    if column2 != "None":
+        col2 = dfoutput.select(column2).collect()
+        col2_arr = np.array(col2).reshape(-1)
+        for i in range(n_clusters):
+            scatter.setBrush(QColor(pg.intColor(i, n_clusters)))
+            for j, k in zip(date_arr, col2_arr[pred_arr == i]):
+                hold.append(
+                    {
+                        "pos": (date_arr[j], k),
+                        "brush": QColor(pg.intColor(i, n_clusters)),
+                        "symbol": "x",
+                    }
+                )
+                scatter.addPoints(hold)
+
     for i in range(n_clusters):
-        print("Cluster: ", i)
         scatter.setBrush(QColor(pg.intColor(i, n_clusters)))
-        # scatter.setPen(QColor(pg.intColor(i, n_clusters)))
-        for j, k in zip(date_arr, col2_arr[pred_arr == i]):
-            print("Col1: ", j, ", Col2: ", k)
+        for j, k in zip(date_arr, col1_arr[pred_arr == i]):
             hold.append(
                 {
                     "pos": (date_arr[j], k),
@@ -230,15 +241,7 @@ def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
                     "symbol": "o",
                 }
             )
-        for datej, col1k in zip(date_arr, col1_arr[pred_arr == i]):
-            hold.append(
-                {
-                    "pos": (date_arr[datej], col1k),
-                    "brush": QColor(pg.intColor(i, n_clusters)),
-                    "symbol": "x",
-                }
-            )
-        scatter.addPoints(hold)
+            scatter.addPoints(hold)
 
     # Adds the scatter plot to the plot widget
     plot.addItem(scatter)
