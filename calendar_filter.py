@@ -17,8 +17,6 @@ class CalendarFilter(QWidget):
         self.get_start = self.calendar_window()
         self.layout.addLayout(self.get_start)
 
-        self.show()
-
     def calendar_window(self):
         overall_layout = QGridLayout()
         bottom_layout = QHBoxLayout()
@@ -35,8 +33,6 @@ class CalendarFilter(QWidget):
 
         self.start_enter.clicked.connect(self.start_date)
         self.end_enter.clicked.connect(self.end_date)
-        # Will return the current selected start and end dates.
-        # self.done.clicked.connect()
 
         self.start_calendar.move(20, 40)
         self.end_calendar.move(300, 40)
@@ -72,13 +68,10 @@ class CalendarFilter(QWidget):
 
     def start_date(self):
         self.current_start = self.start_calendar.selectedDate()
-        print(self.current_start)
+        selected_start_year = str(self.current_start.year())
+        selected_start_year += ".csv"
+        return selected_start_year
 
     def end_date(self):
         self.current_end = self.end_calendar.selectedDate()
-        print(self.current_end)
-
-
-App = QApplication(sys.argv)
-window = CalendarFilter()
-sys.exit(App.exec())
+        print(self.current_end.year())
