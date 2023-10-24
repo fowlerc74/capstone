@@ -39,7 +39,7 @@ def kmeans(sdf, k, column1, column2, column3):
     sil_output = silhouette_score(new_df)
     # Makes a scatter plot of the features and which cluster they belong to
     graph, sil_graph = setup_graph(
-        output, kmeans_algo.getK(), sil_output, column1, column2, column3
+        output, kmeans_algo.getK(), sil_output, column1, column2, column3, sdf
     )
 
     return graph, sil_graph, legend_box
@@ -108,22 +108,16 @@ def k_columns():
     return columns
 
 
-# When points are hovered over, print
-def on_hover(evt, points):
-    if points.size > 0:
-        print(points[0].data())
-
-
 def legend(column1, column2, column3, centers, n_clusters):
     legend_box = QVBoxLayout()
     cluster_center_box = QVBoxLayout()
     overall_layout = QHBoxLayout()
 
-    legend_title = QLabel("Symbol Meaning:")
+    legend_title = QLabel("Legend:")
     legend_box.addWidget(legend_title)
 
-    col1 = str(column1) + " = x"
-    col2 = str(column2) + " = o"
+    col1 = "X: " + str(column1)
+    col2 = "O: " + str(column2)
     col1_label = QLabel(col1)
     col2_label = QLabel(col2)
     legend_box.addWidget(col1_label)
@@ -153,7 +147,7 @@ def legend(column1, column2, column3, centers, n_clusters):
 
 
 # Creates the scatter plot from based on the K-Means results and returns the graph.
-def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
+def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3, sdf):
     # Selecting the prediction column
     pred = dfoutput.select("prediction").collect()
     # Selecting the first chosen column by the user
@@ -170,7 +164,21 @@ def setup_graph(dfoutput, n_clusters, sil_output, column1, column2, column3):
     # Makes a plot widget and setting the background white
     plot = pg.PlotWidget(background="w")
     # Creates a scatter plot and sets hovering to true
-    scatter = pg.ScatterPlotItem(hoverable=True)
+    scatter = pg.ScatterPlotItem(hoverable=True, hoverPen='g')
+
+    # When points are hovered over, print
+    def on_hover(evt, points):
+        if points.size > 0 and points[0].data() == None:
+            print(1)
+            x = points[0].pos()[0]
+            y = points[0].pos()[1]
+
+            for point in points:
+                row = sdf.select("DATE").where(column1 + "==" + str(y)).first()
+                point_data = "\nDate: " + str(row.DATE)
+                point_data += "\n" + column1 + ": " + str(y)
+                point.setData(point_data)
+
     scatter.sigHovered.connect(on_hover)
 
     # Describing what axis' represent in the graph
