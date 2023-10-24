@@ -13,6 +13,7 @@ from linear import *
 from pca import *
 from clear_layout import *
 from start_spark import *
+from calendar_filter import *
 import sys
 import os
 
@@ -71,6 +72,7 @@ class mainWindow(QMainWindow):
         self.active_fil_layout = None
         self.var_active = None
         self.active_var_layout = None
+        self.cal_win_active = None
 
         # Adds the buttons to the ML window
         self.ml_win.addWidget(linear_button, 0, 0)
@@ -120,7 +122,8 @@ class mainWindow(QMainWindow):
 
         self.year_select = QComboBox()
         self.year_select.addItems(self.dir_list)
-        self.year_select.activated.connect(self.set_csv)
+        # self.year_select.activated.connect(self.set_csv)
+        self.year_select.currentTextChanged.connect(self.set_csv)
         self.year_layout.addWidget(self.year_select)
         self.filter_active = True
 
@@ -138,10 +141,26 @@ class mainWindow(QMainWindow):
         self.max_year_select.activated.connect(self.set_max_year)
         self.year_layout.addWidget(self.max_year_select)
 
-        self.year_widget.setMaximumHeight(150)
+        self.cal_win = None
+        self.calendar_button = QPushButton("Open Calendar")
+        self.calendar_button.clicked.connect(self.open_calendar)
+        self.year_layout.addWidget(self.calendar_button)
+
+        self.year_widget.setMaximumHeight(200)
         self.year_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         return self.year_widget
+
+    def open_calendar(self):
+        if self.cal_win == None:
+            self.cal_win = CalendarFilter()
+            self.cal_win.show()
+            self.cal_win_active = True
+            self.cal_win.done.clicked.connect(self.set_csv)
+        else:
+            self.cal_win.close()
+            self.cal_win_active = False
+            self.cal_win = None
 
     # When a starting year is selected, the variable min_year is updated
     def set_min_year(self):
@@ -154,8 +173,15 @@ class mainWindow(QMainWindow):
     # When an option is selected by the user in the combobox
     # it is then passed to self.csv that will be used again in
     # the graph window class.
-    def set_csv(self):
-        self.csv = self.year_select.currentText()
+    def set_csv(self, csv):
+        if self.cal_win != None:
+            self.csv = self.cal_win.start_date()
+            print(self.csv)
+            self.cal_win.close()
+            self.cal_win == None
+        if self.cal_win_active != True:
+            self.csv = csv
+            print(self.csv)
 
     # Has the user select the year and calls linear to
     # perform linear regression on daily precipitation with the chosen year
@@ -177,6 +203,7 @@ class mainWindow(QMainWindow):
     # Takes the year and runs spark and displays the linear regression graph.
     def linear_run(self):
         if self.csv != None:
+            print(self.csv)
             sdf = setup(self.csv)
             self.linear_graph = linear_reg(sdf)
             self.graph_win.addWidget(self.linear_graph, 0, 0)
@@ -202,8 +229,8 @@ class mainWindow(QMainWindow):
         self.column_label = QLabel("Variables:")
         k_col = k_columns()
         self.column1 = None
-        self.column2 = None
-        self.column3 = None
+        self.column2 = "None"
+        self.column3 = "None"
         self.kmeans_var1 = QComboBox()
         self.kmeans_var2 = QComboBox()
         self.kmeans_var3 = QComboBox()
@@ -244,6 +271,7 @@ class mainWindow(QMainWindow):
     # Sets the second column to perform K-Means on
     def set_kColumn2(self):
         self.column2 = self.kmeans_var2.currentText()
+        print(self.column2)
 
     # Sets the third column to perform K-Means on
     def set_kColumn3(self):
@@ -253,9 +281,11 @@ class mainWindow(QMainWindow):
     # also is where the kmeans graph and silhouette graph is added to the
     # graph window.
     def k_check(self):
+        print("Var result = ", self.var_active)
         if self.graph_active == True:
             clear_graph_win(self.graph_win)
         if self.var_active == True:
+            print("Should clear")
             clear_var_win(self.var_win, self.active_var_layout)
         self.set_clusters()
         if self.k != None and self.csv != None:
