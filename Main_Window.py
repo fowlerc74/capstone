@@ -117,7 +117,7 @@ class mainWindow(QMainWindow):
         self.year_layout = QVBoxLayout()
         self.year_widget.setLayout(self.year_layout)
 
-        self.year_label = QLabel("Select Year: TEMP")
+        self.year_label = QLabel("Select Year:")
         self.year_layout.addWidget(self.year_label)
 
         self.year_select = QComboBox()
