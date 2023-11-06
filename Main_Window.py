@@ -151,6 +151,7 @@ class mainWindow(QMainWindow):
 
         return self.year_widget
 
+    # This will open the calender filter window.
     def open_calendar(self):
         if self.cal_win == None:
             self.cal_win = CalendarFilter()
@@ -290,15 +291,51 @@ class mainWindow(QMainWindow):
         self.set_clusters()
         if self.k != None and self.csv != None:
             sdf = setup(self.csv)
-            self.kgraph, self.sil_graph, self.legend = kmeans(
+            self.k_output, self.sil_graph, self.centers = kmeans(
                 sdf, self.k, self.column1, self.column2, self.column3
             )
-            self.var_win.addLayout(self.legend)
-            self.graph_win.addWidget(self.kgraph, 0, 0)
-            self.graph_win.addWidget(self.sil_graph, 0, 1)
-            self.active_var_layout = self.legend
+            self.select_layout = QVBoxLayout()
+            self.k_layout = QHBoxLayout()
+            self.x_label = QLabel("Select the X value for the graph:")
+            self.select_x = user_select_x(self.column1, self.column2, self.column3)
+            self.select_layout.addWidget(self.x_label)
+            self.select_layout.addWidget(self.select_x)
+            self.select_x.activated.connect(self.select_x_kmeans)
+            self.y_label = QLabel("Select the Y value for the graph:")
+            self.select_y = user_select_y(self.column1, self.column2, self.column3)
+            self.select_layout.addWidget(self.y_label)
+            self.select_layout.addWidget(self.select_y)
+            self.select_y.activated.connect(self.select_y_kmeans)
+            self.enter_selection = QPushButton("Display Graph")
+            self.enter_selection.clicked.connect(self.display_k_graph)
+            self.select_layout.addWidget(self.enter_selection)
+            self.k_layout.addLayout(self.select_layout)
+            self.k_layout.addLayout(self.centers)
+            self.var_win.addLayout(self.k_layout)
+            self.active_var_layout = self.k_layout
             self.graph_active = True
             self.var_active = True
+
+    # When the user selects which variable to use for the X axis, it
+    # is saved here to be used for creating the graph.
+    def select_x_kmeans(self):
+        self.x_kmeans = self.select_x.currentText()
+
+    # When the user selects which variable to use for the Y axis, it
+    # is saved here to be used for creating the graph.
+    def select_y_kmeans(self):
+        self.y_kmeans = self.select_y.currentText()
+
+    # Takes all results from running K-Means and displays the results through a scatter plot
+    # also makes use of the silhouette score and makes a line graph.
+    def display_k_graph(self):
+        sdf = setup(self.csv)
+        self.k_graph = setup_graph_k(
+            self.k_output, self.k, self.x_kmeans, self.y_kmeans, sdf
+        )
+        self.graph_win.addWidget(self.k_graph, 0, 0)
+        self.graph_win.addWidget(self.sil_graph, 0, 1)
+        self.graph_active = True
 
     def gaussian_window(self):
         pass
