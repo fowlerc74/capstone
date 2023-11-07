@@ -90,8 +90,8 @@ def k_vector_feature_assembler(column1, column2, column3):
     return vector
 
 
-# Returns the columns to choose from for K-Means.
-def k_columns():
+# Returns the list of columns.
+def columns():
     columns = [
         "None",
         "DailyAverageDryBulbTemperature",
@@ -165,7 +165,7 @@ def setup_sil_graph(sil_output):
 
 
 # Creates the scatter plot from based on the K-Means results and returns the graph.
-def setup_graph_k(dfoutput, n_clusters, column1, column2, sdf):
+def setup_graph_k(dfoutput, n_clusters, column1, column2, hover_var, sdf):
     # Selecting the prediction column
     pred = dfoutput.select("prediction").collect()
     # Selecting the first chosen column for the X axis
@@ -195,9 +195,8 @@ def setup_graph_k(dfoutput, n_clusters, column1, column2, sdf):
             y = points[0].pos()[1]
 
             for point in points:
-                row = sdf.select("DATE").where(column1 + "==" + str(x)).first()
-                point_data = "\nDate: " + str(row.DATE)
-                point_data += "\n" + column1 + ": " + str(x)
+                row = sdf.select(hover_var).where(column1 + "==" + str(x)).first()
+                point_data = "\n" + hover_var + ": " + str(row[hover_var])
                 point.setData(point_data)
 
     scatter.sigHovered.connect(on_hover)

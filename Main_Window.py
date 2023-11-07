@@ -228,7 +228,7 @@ class mainWindow(QMainWindow):
         self.kmeans_options.addWidget(k_means_label)
 
         self.column_label = QLabel("Variables:")
-        k_col = k_columns()
+        k_col = columns()
         self.column1 = None
         self.column2 = "None"
         self.column3 = "None"
@@ -252,6 +252,16 @@ class mainWindow(QMainWindow):
         self.k_textbox.setValidator(QIntValidator())
         self.kmeans_options.addWidget(k_num)
         self.kmeans_options.addWidget(self.k_textbox)
+
+        self.hover_option_layout = QVBoxLayout()
+        self.hover_option_label = QLabel("Select the data to show on hover:")
+        self.hover_option = QComboBox()
+        self.hover_option.addItems(columns()[1:])
+        self.hover_var = columns()[1]
+        self.hover_option.activated.connect(self.set_hover_var)
+        self.hover_option_layout.addWidget(self.hover_option_label)
+        self.hover_option_layout.addWidget(self.hover_option)
+        self.kmeans_options.addLayout(self.hover_option_layout)
 
         self.enter = QPushButton("Run K-Means", self)
         self.kmeans_options.addWidget(self.enter)
@@ -316,6 +326,9 @@ class mainWindow(QMainWindow):
             self.graph_active = True
             self.var_active = True
 
+    def set_hover_var(self):
+        self.hover_var = self.hover_option.currentText()
+
     # When the user selects which variable to use for the X axis, it
     # is saved here to be used for creating the graph.
     def select_x_kmeans(self):
@@ -331,7 +344,7 @@ class mainWindow(QMainWindow):
     def display_k_graph(self):
         sdf = setup(self.csv)
         self.k_graph = setup_graph_k(
-            self.k_output, self.k, self.x_kmeans, self.y_kmeans, sdf
+            self.k_output, self.k, self.x_kmeans, self.y_kmeans, self.hover_var, sdf
         )
         self.graph_win.addWidget(self.k_graph, 0, 0)
         self.graph_win.addWidget(self.sil_graph, 0, 1)
