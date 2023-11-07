@@ -195,9 +195,9 @@ def setup_graph_k(dfoutput, n_clusters, column1, column2, sdf):
             y = points[0].pos()[1]
 
             for point in points:
-                row = sdf.select("DATE").where(column1 + "==" + str(y)).first()
+                row = sdf.select("DATE").where(column1 + "==" + str(x)).first()
                 point_data = "\nDate: " + str(row.DATE)
-                point_data += "\n" + column1 + ": " + str(y)
+                point_data += "\n" + column1 + ": " + str(x)
                 point.setData(point_data)
 
     scatter.sigHovered.connect(on_hover)
