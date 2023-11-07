@@ -190,11 +190,10 @@ def setup_graph_k(dfoutput, n_clusters, column1, column2, hover_var, sdf):
     # When points are hovered over, print
     def on_hover(evt, points):
         if points.size > 0 and points[0].data() == None:
-            print(1)
             x = points[0].pos()[0]
             y = points[0].pos()[1]
 
-            for point in points:
+            for point in points[:3]:
                 row = sdf.select(hover_var).where(column1 + "==" + str(x)).first()
                 point_data = "\n" + hover_var + ": " + str(row[hover_var])
                 point.setData(point_data)
