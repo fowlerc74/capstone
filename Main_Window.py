@@ -193,8 +193,13 @@ class mainWindow(QMainWindow):
             clear_fil_win(self.filter_win, self.active_fil_layout)
         if self.var_active == True:
             clear_var_win(self.var_win, self.active_var_layout)
+        self.linear_param = None
+        linear_select = k_columns()
+        self.linear_option = QComboBox()
+        self.linear_option.addItems(linear_select)
         self.linear_enter = linear_enter()
         self.linear_cancel = linear_cancel()
+        self.filter_win.addWidget(self.linear_option)
         self.filter_win.addWidget(self.linear_enter)
         self.filter_win.addWidget(self.linear_cancel)
 
@@ -204,9 +209,9 @@ class mainWindow(QMainWindow):
     # Takes the year and runs spark and displays the linear regression graph.
     def linear_run(self):
         if self.csv != None:
-            print(self.csv)
+            self.linear_param = self.linear_option.currentText()
             sdf = setup(self.csv)
-            self.linear_graph = linear_reg(sdf)
+            self.linear_graph = linear_reg(sdf, self.linear_param)
             self.graph_win.addWidget(self.linear_graph, 0, 0)
             self.graph_active = True
 
