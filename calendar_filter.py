@@ -4,19 +4,22 @@ from PyQt6.QtCore import *
 import sys
 
 
+# Creates a small window that contains two calendars that will be used to select
+# a time frame for the program to use.
 class CalendarFilter(QWidget):
     def __init__(self):
         super().__init__()
 
         self.layout = QHBoxLayout()
 
-        self.setWindowTitle("Python")
+        self.setWindowTitle("Calendar")
 
         self.setGeometry(100, 100, 600, 400)
 
         self.get_start = self.calendar_window()
         self.layout.addLayout(self.get_start)
 
+    # Creates the calendar and text displayed on the window.
     def calendar_window(self):
         overall_layout = QGridLayout()
         bottom_layout = QHBoxLayout()
@@ -66,12 +69,15 @@ class CalendarFilter(QWidget):
 
         return overall_layout
 
+    # Takes the selected year from the calendar on the left. Will be used later to
+    # to select a certain day to start from.
     def start_date(self):
         self.current_start = self.start_calendar.selectedDate()
         selected_start_year = str(self.current_start.year())
         selected_start_year += ".csv"
         return selected_start_year
 
+    # Currently prints the the current year that is on the calendar to the right.
     def end_date(self):
         self.current_end = self.end_calendar.selectedDate()
         print(self.current_end.year())
