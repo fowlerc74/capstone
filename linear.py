@@ -1,6 +1,6 @@
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import LinearRegression
-from PyQt6.QtWidgets import QPushButton, QLabel
+from PyQt6.QtWidgets import QPushButton, QLabel, QLineEdit, QGridLayout
 import numpy as np
 import pyqtgraph as pg
 
@@ -17,8 +17,32 @@ def linear_cancel():
     return cancel
 
 
+# Makes a title for the train and test selection.
+def train_test_title():
+    text_label = QLabel("Input the split between Test and Train:")
+    return text_label
+
+
+# Makes a label to go over the train box.
+def train_box_label():
+    train_label = QLabel("Train")
+    return train_label
+
+
+# Makes a label to go over the test box.
+def test_box_label():
+    test_Label = QLabel("Test")
+    return test_Label
+
+
+# Makes a example and warn message to the user
+def warn_label():
+    warn = QLabel("Must equal up to 1.0.\nExample: 0.7,0.3")
+    return warn
+
+
 # Runs Linear Regression and returns the line graph of the predicted values
-def linear_reg(sdf, sel_col):
+def linear_reg(sdf, sel_col, train, test):
     # Drop NULL values
     sdf = sdf.na.drop()
     # Created a feature vector
@@ -28,7 +52,7 @@ def linear_reg(sdf, sel_col):
     # Selects the features column and user selected column from the new DataFrame
     feat_df = new_df.select("features", str(sel_col))
     # Split the data into a training and test data. Will be an option later
-    train_data, test_data = feat_df.randomSplit([0.7, 0.3])
+    train_data, test_data = feat_df.randomSplit([float(train), float(test)])
     # Creating an object of class Linear Regression
     # Object takes features as an input argument
     line_algo = LinearRegression(featuresCol="features", labelCol=str(sel_col))
