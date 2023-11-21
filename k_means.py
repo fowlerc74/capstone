@@ -91,7 +91,7 @@ def k_vector_feature_assembler(column1, column2, column3):
 
 
 # Returns the list of columns.
-def columns():
+def columns(): #TODO make to a constant
     columns = [
         "None",
         "DailyAverageDryBulbTemperature",
@@ -165,7 +165,7 @@ def setup_sil_graph(sil_output):
 
 
 # Creates the scatter plot from based on the K-Means results and returns the graph.
-def setup_graph_k(dfoutput, n_clusters, column1, column2, hover_var, sdf):
+def setup_graph_k(dfoutput, n_clusters, column1, column2, hover, sdf):
     # Selecting the prediction column
     pred = dfoutput.select("prediction").collect()
     # Selecting the first chosen column for the X axis
@@ -187,18 +187,10 @@ def setup_graph_k(dfoutput, n_clusters, column1, column2, hover_var, sdf):
     plot.setLabel("left", str(column2))
     plot.setWindowTitle("K-Means")
 
-    # When points are hovered over, print
     def on_hover(evt, points):
-        if points.size > 0 and points[0].data() == None:
-            x = points[0].pos()[0]
-            y = points[0].pos()[1]
-
-            for point in points[:3]:
-                row = sdf.select(hover_var, 'DATE').where(column1 + "==" + str(x) + " and " + column2 + "==" + str(y)).first()
-                point_data = "\n" + "Date: " + str(row['DATE'])
-                point_data += "\n" + hover_var + ": " + str(row[hover_var])
-                point.setData(point_data)
-
+        if points.size > 0:
+            hover.point_query(points, sdf, column1, column2)
+           
     scatter.sigHovered.connect(on_hover)
 
     hold_k_points = []
@@ -216,3 +208,20 @@ def setup_graph_k(dfoutput, n_clusters, column1, column2, hover_var, sdf):
 
     plot.addItem(scatter)
     return plot
+
+class Hover:
+    def __init__(self, hover_var):
+        self.var = hover_var
+
+    def set_hover_var(self, hover_var):
+        self.var = hover_var
+
+    def point_query(self, points, sdf, column1, column2):
+        x = points[0].pos()[0]
+        y = points[0].pos()[1]
+
+        for point in points[:3]:
+            row = sdf.select(self.var, 'DATE').where(column1 + "==" + str(x) + " and " + column2 + "==" + str(y)).first()
+            point_data = "\n" + "Date: " + str(row['DATE'])
+            point_data += "\n" + self.var + ": " + str(row[self.var])
+            point.setData(point_data)

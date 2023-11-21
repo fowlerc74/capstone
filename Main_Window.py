@@ -194,7 +194,7 @@ class mainWindow(QMainWindow):
         if self.var_active == True:
             clear_var_win(self.var_win, self.active_var_layout)
         self.linear_param = None
-        linear_select = k_columns()
+        linear_select = columns()
         self.linear_option = QComboBox()
         self.linear_option.addItems(linear_select)
         self.linear_enter = linear_enter()
@@ -258,16 +258,6 @@ class mainWindow(QMainWindow):
         self.kmeans_options.addWidget(k_num)
         self.kmeans_options.addWidget(self.k_textbox)
 
-        self.hover_option_layout = QVBoxLayout()
-        self.hover_option_label = QLabel("Select the data to show on hover:")
-        self.hover_option = QComboBox()
-        self.hover_option.addItems(columns()[1:])
-        self.hover_var = columns()[1]
-        self.hover_option.activated.connect(self.set_hover_var)
-        self.hover_option_layout.addWidget(self.hover_option_label)
-        self.hover_option_layout.addWidget(self.hover_option)
-        self.kmeans_options.addLayout(self.hover_option_layout)
-
         self.enter = QPushButton("Run K-Means", self)
         self.kmeans_options.addWidget(self.enter)
         self.enter.clicked.connect(self.k_check)
@@ -305,9 +295,9 @@ class mainWindow(QMainWindow):
             clear_var_win(self.var_win, self.active_var_layout)
         self.set_clusters()
         if self.k != None and self.csv != None:
-            sdf = setup(self.csv)
+            self.sdf = setup(self.csv)
             self.k_output, self.sil_graph, self.centers = kmeans(
-                sdf, self.k, self.column1, self.column2, self.column3
+                self.sdf, self.k, self.column1, self.column2, self.column3
             )
             self.select_layout = QVBoxLayout()
             self.k_layout = QHBoxLayout()
@@ -315,11 +305,13 @@ class mainWindow(QMainWindow):
             self.select_x = user_select_x(self.column1, self.column2, self.column3)
             self.select_layout.addWidget(self.x_label)
             self.select_layout.addWidget(self.select_x)
+            self.x_kmeans = self.column1
             self.select_x.activated.connect(self.select_x_kmeans)
             self.y_label = QLabel("Select the Y value for the graph:")
             self.select_y = user_select_y(self.column1, self.column2, self.column3)
             self.select_layout.addWidget(self.y_label)
             self.select_layout.addWidget(self.select_y)
+            self.y_kmeans = self.column2
             self.select_y.activated.connect(self.select_y_kmeans)
             self.enter_selection = QPushButton("Display Graph")
             self.enter_selection.clicked.connect(self.display_k_graph)
@@ -331,8 +323,18 @@ class mainWindow(QMainWindow):
             self.graph_active = True
             self.var_active = True
 
+            self.hover_option_layout = QVBoxLayout()
+            self.hover_option_label = QLabel("Select the data to show on hover:")
+            self.hover_option = QComboBox()
+            self.hover_option.addItems(columns()[1:])
+            self.hover = Hover(columns()[1])
+            self.hover_option.activated.connect(self.set_hover_var)
+            self.hover_option_layout.addWidget(self.hover_option_label)
+            self.hover_option_layout.addWidget(self.hover_option)
+            self.k_layout.addLayout(self.hover_option_layout)
+
     def set_hover_var(self):
-        self.hover_var = self.hover_option.currentText()
+        self.hover.set_hover_var(self.hover_option.currentText())
 
     # When the user selects which variable to use for the X axis, it
     # is saved here to be used for creating the graph.
@@ -349,7 +351,7 @@ class mainWindow(QMainWindow):
     def display_k_graph(self):
         sdf = setup(self.csv)
         self.k_graph = setup_graph_k(
-            self.k_output, self.k, self.x_kmeans, self.y_kmeans, self.hover_var, sdf
+            self.k_output, self.k, self.x_kmeans, self.y_kmeans, self.hover, sdf
         )
         self.graph_win.addWidget(self.k_graph, 0, 0)
         self.graph_win.addWidget(self.sil_graph, 0, 1)
