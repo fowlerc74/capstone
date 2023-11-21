@@ -36,11 +36,6 @@ def kmeans(sdf, k, column1, column2, column3):
 
     sil_graph = setup_sil_graph(sil_output)
 
-    # Makes a scatter plot of the features and which cluster they belong to
-    # graph = setup_graph(
-    #     output, kmeans_algo.getK(), column1, column2, column3, sdf
-    # )
-
     return output, sil_graph, cluster_centers
 
 
@@ -66,9 +61,6 @@ def silhouette_score(df):
 # Creates a vector that contains the variables that the user chosen
 # and names the vector "features".
 def k_vector_feature_assembler(column1, column2, column3):
-    print(column1)
-    print(column2)
-    print(column3)
     if column3 == "None" and column2 == "None":
         print("Here 1: ", column2)
         vector = VectorAssembler(
@@ -79,9 +71,6 @@ def k_vector_feature_assembler(column1, column2, column3):
         print("Here 2: ", column2)
         vector = VectorAssembler(inputCols=[column1, column2], outputCol="features")
 
-    # if column2 == "None" and column3 == "None":
-    #     # Display a error message, must have at least 2
-    #     pass
     if column1 != "None" and column2 != "None" and column3 != "None":
         vector = VectorAssembler(
             inputCols=[column1, column2, column3],
@@ -133,6 +122,7 @@ def clusters(centers, n_clusters):
     return cluster_center_box
 
 
+# The columns that can be selected for the x value for the scatter plot.
 def user_select_x(column1, column2, column3):
     options = [str(column1), str(column2), str(column3)]
     x_value = QComboBox()
@@ -140,6 +130,7 @@ def user_select_x(column1, column2, column3):
     return x_value
 
 
+# The columns that can be selected for the y value for the scatter plot.
 def user_select_y(column1, column2, column3):
     options = [str(column1), str(column2), str(column3)]
     y_value = QComboBox()

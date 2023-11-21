@@ -177,53 +177,77 @@ class mainWindow(QMainWindow):
     def set_csv(self, csv):
         if self.cal_win != None:
             self.csv = self.cal_win.start_date()
-            print(self.csv)
             self.cal_win.close()
             self.cal_win == None
         if self.cal_win_active != True:
             self.csv = csv
-            print(self.csv)
 
     # Has the user select the year and calls linear to
     # perform linear regression on daily precipitation with the chosen year
     def linear_win(self):
-        if self.graph_active == True:
-            clear_graph_win(self.graph_win)
-        if self.filter_active == True:
-            clear_fil_win(self.filter_win, self.active_fil_layout)
-        if self.var_active == True:
-            clear_var_win(self.var_win, self.active_var_layout)
+        self.canceled()
+        self.linear_fil = QVBoxLayout()
+        self.test_train_layout = QGridLayout()
         self.linear_param = None
         linear_select = columns()
         self.linear_option = QComboBox()
         self.linear_option.addItems(linear_select)
         self.linear_enter = linear_enter()
         self.linear_cancel = linear_cancel()
-        self.filter_win.addWidget(self.linear_option)
-        self.filter_win.addWidget(self.linear_enter)
-        self.filter_win.addWidget(self.linear_cancel)
-
+        self.train_box = QLineEdit()
+        self.test_box = QLineEdit()
+        self.train_test = train_test_title()
+        self.train_title = train_box_label()
+        self.test_title = test_box_label()
+        self.line_warn = warn_label()
+        self.linear_fil.addWidget(self.train_test)
+        self.test_train_layout.addWidget(self.train_title, 0, 0)
+        self.test_train_layout.addWidget(self.test_title, 0, 1)
+        self.test_train_layout.addWidget(self.train_box, 1, 0)
+        self.test_train_layout.addWidget(self.test_box, 1, 1)
+        self.linear_fil.addLayout(self.test_train_layout)
+        self.linear_fil.addWidget(self.line_warn)
+        self.linear_fil.addWidget(self.linear_option)
+        self.linear_fil.addWidget(self.linear_enter)
+        self.linear_fil.addWidget(self.linear_cancel)
+        self.filter_win.addLayout(self.linear_fil)
+        self.active_fil_layout = self.linear_fil
+        self.filter_active = True
         self.linear_enter.clicked.connect(self.linear_run)
         self.linear_cancel.clicked.connect(self.canceled)
 
     # Takes the year and runs spark and displays the linear regression graph.
     def linear_run(self):
+        if self.var_active == True:
+            clear_var_win(self.var_win, self.active_var_layout)
         if self.csv != None:
             self.linear_param = self.linear_option.currentText()
             sdf = setup(self.csv)
-            self.linear_graph = linear_reg(sdf, self.linear_param)
+            (
+                self.linear_graph,
+                self.coe_label,
+                self.inter_label,
+                self.r2_label,
+            ) = linear_reg(
+                sdf, self.linear_param, self.test_box.text(), self.train_box.text()
+            )
+            self.linear_var_win = QVBoxLayout()
             self.graph_win.addWidget(self.linear_graph, 0, 0)
+            self.linear_var_win.addWidget(self.coe_label)
+            self.linear_var_win.addWidget(self.inter_label)
+            self.linear_var_win.addWidget(self.r2_label)
+            self.var_win.addLayout(self.linear_var_win)
             self.graph_active = True
+            self.active_var_layout = self.linear_var_win
+            self.var_active = True
 
     #  Calls k_means to display the k-means graph.
     def kmeans_window(self):
-        print("Var result = ", self.var_active)
         if self.graph_active == True:
             clear_graph_win(self.graph_win)
         if self.filter_active == True:
             clear_fil_win(self.filter_win, self.active_fil_layout)
         if self.var_active == True:
-            print("Should clear")
             clear_var_win(self.var_win, self.active_var_layout)
 
         self.kmeans_options = QVBoxLayout()
@@ -287,11 +311,9 @@ class mainWindow(QMainWindow):
     # also is where the kmeans graph and silhouette graph is added to the
     # graph window.
     def k_check(self):
-        print("Var result = ", self.var_active)
         if self.graph_active == True:
             clear_graph_win(self.graph_win)
         if self.var_active == True:
-            print("Should clear")
             clear_var_win(self.var_win, self.active_var_layout)
         self.set_clusters()
         if self.k != None and self.csv != None:
@@ -429,6 +451,8 @@ class mainWindow(QMainWindow):
             clear_graph_win(self.graph_win)
         if self.filter_active == True:
             clear_fil_win(self.filter_win, self.active_fil_layout)
+        if self.var_active == True:
+            clear_var_win(self.var_win, self.active_var_layout)
 
 
 app = QApplication(sys.argv)
