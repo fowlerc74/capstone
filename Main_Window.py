@@ -185,19 +185,28 @@ class mainWindow(QMainWindow):
     # Has the user select the year and calls linear to
     # perform linear regression on daily precipitation with the chosen year
     def linear_win(self):
-        if self.graph_active == True:
-            clear_graph_win(self.graph_win)
-        if self.filter_active == True:
-            clear_fil_win(self.filter_win, self.active_fil_layout)
-        if self.var_active == True:
-            clear_var_win(self.var_win, self.active_var_layout)
+        self.canceled()
         self.linear_fil = QVBoxLayout()
+        self.test_train_layout = QGridLayout()
         self.linear_param = None
         linear_select = k_columns()
         self.linear_option = QComboBox()
         self.linear_option.addItems(linear_select)
         self.linear_enter = linear_enter()
         self.linear_cancel = linear_cancel()
+        self.train_box = QLineEdit()
+        self.test_box = QLineEdit()
+        self.train_test = train_test_title()
+        self.train_title = train_box_label()
+        self.test_title = test_box_label()
+        self.line_warn = warn_label()
+        self.linear_fil.addWidget(self.train_test)
+        self.test_train_layout.addWidget(self.train_title, 0, 0)
+        self.test_train_layout.addWidget(self.test_title, 0, 1)
+        self.test_train_layout.addWidget(self.train_box, 1, 0)
+        self.test_train_layout.addWidget(self.test_box, 1, 1)
+        self.linear_fil.addLayout(self.test_train_layout)
+        self.linear_fil.addWidget(self.line_warn)
         self.linear_fil.addWidget(self.linear_option)
         self.linear_fil.addWidget(self.linear_enter)
         self.linear_fil.addWidget(self.linear_cancel)
@@ -219,7 +228,9 @@ class mainWindow(QMainWindow):
                 self.coe_label,
                 self.inter_label,
                 self.r2_label,
-            ) = linear_reg(sdf, self.linear_param)
+            ) = linear_reg(
+                sdf, self.linear_param, self.test_box.text(), self.train_box.text()
+            )
             self.linear_var_win = QVBoxLayout()
             self.graph_win.addWidget(self.linear_graph, 0, 0)
             self.linear_var_win.addWidget(self.coe_label)
