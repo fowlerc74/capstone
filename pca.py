@@ -11,11 +11,10 @@ def pca(sdf, num_comp):
     Parameters:
         sdf:         the dataframe to run PCA on
         num_comp:    (k value) the number of components to reduce to
-        num_results: the number of reduced datapoints to return
 
     Returns:
-        the model,
-        the requested number of modified datapoints
+        the scatter plot
+        the explained variances
     """
     # Drops NULL values
     sdf = sdf.na.drop()
@@ -37,7 +36,7 @@ def pca(sdf, num_comp):
     graph = setup_graph(data)
     
 
-    return graph
+    return graph, model.explainedVariance
 
 def convert_data(data, num_comp):
     converted = []
