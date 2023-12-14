@@ -192,6 +192,7 @@ class graphWindow(QWidget):
 
             self.pca_win.addWidget(self.pca_graph)
 
+            # Old output for PCA
             # # Add label for text output
             # pca_label = QLabel("Principal Component Analysis")
             # self.pca_win.addWidget(pca_label)

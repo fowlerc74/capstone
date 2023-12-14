@@ -178,12 +178,14 @@ def setup_graph_k(dfoutput, n_clusters, column1, column2, hover, sdf):
     plot.setLabel("left", str(column2))
     plot.setWindowTitle("K-Means")
 
+    # Define the function to run on hover
     def on_hover(evt, points):
         if points.size > 0:
             hover.point_query(points, sdf, column1, column2)
-           
+    # Connect that function to the hover signal
     scatter.sigHovered.connect(on_hover)
 
+    # Create the scatterplot and color it by cluster
     hold_k_points = []
     for i in range(n_clusters):
         scatter.setBrush(QColor(pg.intColor(i, n_clusters)))
@@ -200,18 +202,40 @@ def setup_graph_k(dfoutput, n_clusters, column1, column2, hover, sdf):
     plot.addItem(scatter)
     return plot
 
+# The number of points to query
+# This is because of the bug where each scatterplot point is repeated many times
+NUM_POINTS_QUERY = 3
+
+# A hover class used to store the hover variable 
 class Hover:
+    # Init hover var
     def __init__(self, hover_var):
         self.var = hover_var
 
     def set_hover_var(self, hover_var):
+        """
+        Sets the variable to be shown on hover
+
+        Parameters:
+            hover_var: the new hover variable
+        """
         self.var = hover_var
 
     def point_query(self, points, sdf, column1, column2):
+        """
+        Query the points when hovering and update their data. 
+
+        Parameters:
+            self:
+            points: the list of points being hovered over
+            sdf: the dataframe with the data
+            column1: the name of the x axis variable
+            column2: the name of the y axis variable
+        """
         x = points[0].pos()[0]
         y = points[0].pos()[1]
 
-        for point in points[:3]:
+        for point in points[:NUM_POINTS_QUERY]:
             row = sdf.select(self.var, 'DATE').where(column1 + "==" + str(x) + " and " + column2 + "==" + str(y)).first()
             point_data = "\n" + "Date: " + str(row['DATE'])
             point_data += "\n" + self.var + ": " + str(row[self.var])
