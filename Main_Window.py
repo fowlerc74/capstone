@@ -180,48 +180,77 @@ class mainWindow(QMainWindow):
     def set_csv(self, csv):
         if self.cal_win != None:
             self.csv = self.cal_win.start_date()
-            print(self.csv)
             self.cal_win.close()
             self.cal_win == None
         if self.cal_win_active != True:
             self.csv = csv
-            print(self.csv)
 
     # Has the user select the year and calls linear to
     # perform linear regression on daily precipitation with the chosen year
     def linear_win(self):
-        if self.graph_active == True:
-            clear_graph_win(self.graph_win)
-        if self.filter_active == True:
-            clear_fil_win(self.filter_win, self.active_fil_layout)
-        if self.var_active == True:
-            clear_var_win(self.var_win, self.active_var_layout)
+        self.canceled()
+        self.linear_fil = QVBoxLayout()
+        self.test_train_layout = QGridLayout()
+        self.linear_param = None
+        linear_select = columns()
+        self.linear_option = QComboBox()
+        self.linear_option.addItems(linear_select)
         self.linear_enter = linear_enter()
         self.linear_cancel = linear_cancel()
-        self.filter_win.addWidget(self.linear_enter)
-        self.filter_win.addWidget(self.linear_cancel)
-
+        self.train_box = QLineEdit()
+        self.test_box = QLineEdit()
+        self.train_test = train_test_title()
+        self.train_title = train_box_label()
+        self.test_title = test_box_label()
+        self.line_warn = warn_label()
+        self.linear_fil.addWidget(self.train_test)
+        self.test_train_layout.addWidget(self.train_title, 0, 0)
+        self.test_train_layout.addWidget(self.test_title, 0, 1)
+        self.test_train_layout.addWidget(self.train_box, 1, 0)
+        self.test_train_layout.addWidget(self.test_box, 1, 1)
+        self.linear_fil.addLayout(self.test_train_layout)
+        self.linear_fil.addWidget(self.line_warn)
+        self.linear_fil.addWidget(self.linear_option)
+        self.linear_fil.addWidget(self.linear_enter)
+        self.linear_fil.addWidget(self.linear_cancel)
+        self.filter_win.addLayout(self.linear_fil)
+        self.active_fil_layout = self.linear_fil
+        self.filter_active = True
         self.linear_enter.clicked.connect(self.linear_run)
         self.linear_cancel.clicked.connect(self.canceled)
 
     # Takes the year and runs spark and displays the linear regression graph.
     def linear_run(self):
+        if self.var_active == True:
+            clear_var_win(self.var_win, self.active_var_layout)
         if self.csv != None:
-            print(self.csv)
+            self.linear_param = self.linear_option.currentText()
             sdf = setup(self.csv)
-            self.linear_graph = linear_reg(sdf)
+            (
+                self.linear_graph,
+                self.coe_label,
+                self.inter_label,
+                self.r2_label,
+            ) = linear_reg(
+                sdf, self.linear_param, self.test_box.text(), self.train_box.text()
+            )
+            self.linear_var_win = QVBoxLayout()
             self.graph_win.addWidget(self.linear_graph, 0, 0)
+            self.linear_var_win.addWidget(self.coe_label)
+            self.linear_var_win.addWidget(self.inter_label)
+            self.linear_var_win.addWidget(self.r2_label)
+            self.var_win.addLayout(self.linear_var_win)
             self.graph_active = True
+            self.active_var_layout = self.linear_var_win
+            self.var_active = True
 
     #  Calls k_means to display the k-means graph.
     def kmeans_window(self):
-        print("Var result = ", self.var_active)
         if self.graph_active == True:
             clear_graph_win(self.graph_win)
         if self.filter_active == True:
             clear_fil_win(self.filter_win, self.active_fil_layout)
         if self.var_active == True:
-            print("Should clear")
             clear_var_win(self.var_win, self.active_var_layout)
 
         self.kmeans_options = QVBoxLayout()
@@ -231,7 +260,7 @@ class mainWindow(QMainWindow):
         self.kmeans_options.addWidget(k_means_label)
 
         self.column_label = QLabel("Variables:")
-        k_col = k_columns()
+        k_col = columns()
         self.column1 = None
         self.column2 = "None"
         self.column3 = "None"
@@ -285,17 +314,15 @@ class mainWindow(QMainWindow):
     # also is where the kmeans graph and silhouette graph is added to the
     # graph window.
     def k_check(self):
-        print("Var result = ", self.var_active)
         if self.graph_active == True:
             clear_graph_win(self.graph_win)
         if self.var_active == True:
-            print("Should clear")
             clear_var_win(self.var_win, self.active_var_layout)
         self.set_clusters()
         if self.k != None and self.csv != None:
-            sdf = setup(self.csv)
+            self.sdf = setup(self.csv)
             self.k_output, self.sil_graph, self.centers = kmeans(
-                sdf, self.k, self.column1, self.column2, self.column3
+                self.sdf, self.k, self.column1, self.column2, self.column3
             )
             self.select_layout = QVBoxLayout()
             self.k_layout = QHBoxLayout()
@@ -303,11 +330,13 @@ class mainWindow(QMainWindow):
             self.select_x = user_select_x(self.column1, self.column2, self.column3)
             self.select_layout.addWidget(self.x_label)
             self.select_layout.addWidget(self.select_x)
+            self.x_kmeans = self.column1
             self.select_x.activated.connect(self.select_x_kmeans)
             self.y_label = QLabel("Select the Y value for the graph:")
             self.select_y = user_select_y(self.column1, self.column2, self.column3)
             self.select_layout.addWidget(self.y_label)
             self.select_layout.addWidget(self.select_y)
+            self.y_kmeans = self.column2
             self.select_y.activated.connect(self.select_y_kmeans)
             self.enter_selection = QPushButton("Display Graph")
             self.enter_selection.clicked.connect(self.display_k_graph)
@@ -318,6 +347,19 @@ class mainWindow(QMainWindow):
             self.active_var_layout = self.k_layout
             self.graph_active = True
             self.var_active = True
+
+            self.hover_option_layout = QVBoxLayout()
+            self.hover_option_label = QLabel("Select the data to show on hover:")
+            self.hover_option = QComboBox()
+            self.hover_option.addItems(columns()[1:])
+            self.hover = Hover(columns()[1])
+            self.hover_option.activated.connect(self.set_hover_var)
+            self.hover_option_layout.addWidget(self.hover_option_label)
+            self.hover_option_layout.addWidget(self.hover_option)
+            self.k_layout.addLayout(self.hover_option_layout)
+
+    def set_hover_var(self):
+        self.hover.set_hover_var(self.hover_option.currentText())
 
     # When the user selects which variable to use for the X axis, it
     # is saved here to be used for creating the graph.
@@ -334,7 +376,7 @@ class mainWindow(QMainWindow):
     def display_k_graph(self):
         sdf = setup(self.csv)
         self.k_graph = setup_graph_k(
-            self.k_output, self.k, self.x_kmeans, self.y_kmeans, sdf
+            self.k_output, self.k, self.x_kmeans, self.y_kmeans, self.hover, sdf
         )
         self.graph_win.addWidget(self.k_graph, 0, 0)
         self.graph_win.addWidget(self.sil_graph, 0, 1)
@@ -380,26 +422,32 @@ class mainWindow(QMainWindow):
         self.num_comp = int(self.pca_textbox.text())
 
         if self.csv != None:
-            sdf = setup(self.csv)
+            self.sdf = setup(self.csv)
 
         # If the number of components
         if self.num_comp != None and self.num_comp > 0:
-            # Run PCA, get the model and data out
-            model, data = pca(sdf, self.num_comp, NUM_OUTPUT_VALUES)
-            # Add label for text output
-            pca_label = QLabel("Principal Component Analysis")
-            self.pca_win.addWidget(pca_label)
-            # Print out the explained variances
-            variances = QLabel("Explained Variances:" + str(model.explainedVariance))
-            self.pca_win.addWidget(variances)
-            # Print out label for datapoints
-            first_str = "First " + str(NUM_OUTPUT_VALUES) + " Data Points:"
-            first_values_label = QLabel(first_str)
-            self.pca_win.addWidget(first_values_label)
-            # Loop through output data and print
-            for out in data:
-                values = QLabel(str(out.output))
-                self.pca_win.addWidget(values)
+            # # Add label for text output
+            # pca_label = QLabel("Principal Component Analysis")
+            # self.pca_win.addWidget(pca_label)
+            # # Print out the explained variances
+            # variances = QLabel("Explained Variances:" + str(model.explainedVariance))
+            # self.pca_win.addWidget(variances)
+            # # Print out label for datapoints
+            # first_str = "First " + str(NUM_OUTPUT_VALUES) + " Data Points:"
+            # first_values_label = QLabel(first_str)
+            # self.pca_win.addWidget(first_values_label)
+            # # Loop through output data and print
+            # for out in data:
+            #     values = QLabel(str(out.output))
+            #     self.pca_win.addWidget(values)
+
+            self.pca_graph, variances = pca(self.sdf, self.num_comp)
+
+            self.pca_win.addWidget(self.pca_graph)
+
+            self.variance_label = QLabel("Explained Variances:" + str(variances))
+
+            self.pca_win.addWidget(self.variance_label)
 
             # Add to the graph window, default to bottom left
             self.graph_win.addLayout(self.pca_win, 1, 0)
@@ -412,6 +460,8 @@ class mainWindow(QMainWindow):
             clear_graph_win(self.graph_win)
         if self.filter_active == True:
             clear_fil_win(self.filter_win, self.active_fil_layout)
+        if self.var_active == True:
+            clear_var_win(self.var_win, self.active_var_layout)
 
 
 app = QApplication(sys.argv)

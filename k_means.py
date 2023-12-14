@@ -36,11 +36,6 @@ def kmeans(sdf, k, column1, column2, column3):
 
     sil_graph = setup_sil_graph(sil_output)
 
-    # Makes a scatter plot of the features and which cluster they belong to
-    # graph = setup_graph(
-    #     output, kmeans_algo.getK(), column1, column2, column3, sdf
-    # )
-
     return output, sil_graph, cluster_centers
 
 
@@ -66,9 +61,6 @@ def silhouette_score(df):
 # Creates a vector that contains the variables that the user chosen
 # and names the vector "features".
 def k_vector_feature_assembler(column1, column2, column3):
-    print(column1)
-    print(column2)
-    print(column3)
     if column3 == "None" and column2 == "None":
         print("Here 1: ", column2)
         vector = VectorAssembler(
@@ -79,9 +71,6 @@ def k_vector_feature_assembler(column1, column2, column3):
         print("Here 2: ", column2)
         vector = VectorAssembler(inputCols=[column1, column2], outputCol="features")
 
-    # if column2 == "None" and column3 == "None":
-    #     # Display a error message, must have at least 2
-    #     pass
     if column1 != "None" and column2 != "None" and column3 != "None":
         vector = VectorAssembler(
             inputCols=[column1, column2, column3],
@@ -90,8 +79,8 @@ def k_vector_feature_assembler(column1, column2, column3):
     return vector
 
 
-# Returns the columns to choose from for K-Means.
-def k_columns():
+# Returns the list of columns.
+def columns(): #TODO make to a constant
     columns = [
         "None",
         "DailyAverageDryBulbTemperature",
@@ -133,6 +122,7 @@ def clusters(centers, n_clusters):
     return cluster_center_box
 
 
+# The columns that can be selected for the x value for the scatter plot.
 def user_select_x(column1, column2, column3):
     options = [str(column1), str(column2), str(column3)]
     x_value = QComboBox()
@@ -140,6 +130,7 @@ def user_select_x(column1, column2, column3):
     return x_value
 
 
+# The columns that can be selected for the y value for the scatter plot.
 def user_select_y(column1, column2, column3):
     options = [str(column1), str(column2), str(column3)]
     y_value = QComboBox()
@@ -165,7 +156,7 @@ def setup_sil_graph(sil_output):
 
 
 # Creates the scatter plot from based on the K-Means results and returns the graph.
-def setup_graph_k(dfoutput, n_clusters, column1, column2, sdf):
+def setup_graph_k(dfoutput, n_clusters, column1, column2, hover, sdf):
     # Selecting the prediction column
     pred = dfoutput.select("prediction").collect()
     # Selecting the first chosen column for the X axis
@@ -187,19 +178,10 @@ def setup_graph_k(dfoutput, n_clusters, column1, column2, sdf):
     plot.setLabel("left", str(column2))
     plot.setWindowTitle("K-Means")
 
-    # When points are hovered over, print
     def on_hover(evt, points):
-        if points.size > 0 and points[0].data() == None:
-            print(1)
-            x = points[0].pos()[0]
-            y = points[0].pos()[1]
-
-            for point in points:
-                row = sdf.select("DATE").where(column1 + "==" + str(x)).first()
-                point_data = "\nDate: " + str(row.DATE)
-                point_data += "\n" + column1 + ": " + str(x)
-                point.setData(point_data)
-
+        if points.size > 0:
+            hover.point_query(points, sdf, column1, column2)
+           
     scatter.sigHovered.connect(on_hover)
 
     hold_k_points = []
@@ -217,3 +199,20 @@ def setup_graph_k(dfoutput, n_clusters, column1, column2, sdf):
 
     plot.addItem(scatter)
     return plot
+
+class Hover:
+    def __init__(self, hover_var):
+        self.var = hover_var
+
+    def set_hover_var(self, hover_var):
+        self.var = hover_var
+
+    def point_query(self, points, sdf, column1, column2):
+        x = points[0].pos()[0]
+        y = points[0].pos()[1]
+
+        for point in points[:3]:
+            row = sdf.select(self.var, 'DATE').where(column1 + "==" + str(x) + " and " + column2 + "==" + str(y)).first()
+            point_data = "\n" + "Date: " + str(row['DATE'])
+            point_data += "\n" + self.var + ": " + str(row[self.var])
+            point.setData(point_data)

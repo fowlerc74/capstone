@@ -94,7 +94,7 @@ class graphWindow(QWidget):
         self.kmeans_options.addWidget(k_means_label)
 
         self.column_label = QLabel("Variables:")
-        k_col = k_columns()
+        k_col = columns()
         self.column1 = None
         self.column2 = None
         self.kmeans_var1 = QComboBox()
