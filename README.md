@@ -11,3 +11,22 @@ python3 .\driver.py or
 python .\driver.py
 
 depending on your installation of Python.
+
+
+List of files not being used:
+Menu.py
+Graph_Window.py
+ML_Part.py
+new_menu.py
+new_ML_Part.py
+PyQt.py
+
+
+Files that we focused on Fall 2023:
+Main_Window.py
+k_means.py
+calendar_filter.py
+linear.py
+pca.py
+driver.py
+clear_layout.py
