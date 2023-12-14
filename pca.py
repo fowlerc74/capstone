@@ -35,10 +35,16 @@ def pca(sdf, num_comp):
 
     graph = setup_graph(data)
     
-
     return graph, model.explainedVariance
 
 def convert_data(data, num_comp):
+    """
+    Converts the data into lists based on the number of components
+
+    Parameters:
+        data: the data to convert
+        num_comp: the number of components of the PCA
+    """
     converted = []
     for i in range(num_comp):
         converted.append([])
