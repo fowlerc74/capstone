@@ -17,12 +17,15 @@ from calendar_filter import *
 import sys
 import os
 
+WINDOW_WIDTH = 1400
+WINDOW_HEIGHT = 700
+OPTIONS_WIDGET_WIDTH = 350
 
 class mainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Weather app")
-        self.resize(1400, 700)
+        self.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
         self.layout = QGridLayout()
         self.layout.setAlignment(Qt.AlignmentFlag.AlignRight)
@@ -38,7 +41,7 @@ class mainWindow(QMainWindow):
         self.options_widget = QWidget()
         self.options_layout = QVBoxLayout()
         self.options_widget.setLayout(self.options_layout)
-        self.options_widget.setMaximumWidth(350)  # TODO make this a var
+        self.options_widget.setMaximumWidth(OPTIONS_WIDGET_WIDTH)  
 
         self.year_win = self.select_year()
         self.options_layout.addWidget(self.year_win)
